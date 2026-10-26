@@ -1,0 +1,25 @@
+{
+  "provider": "Meshy",
+  "task_id": "01a17a66-78e1-711e-a7b6-bca435553e55",
+  "status": "SUCCEEDED",
+  "consumed_credits": 5,
+  "request": {
+    "mode": "preview",
+    "model_type": "standard",
+    "ai_model": "meshy-6-lite",
+    "geometry_resolution": "standard",
+    "should_remesh": true,
+    "topology": "triangle",
+    "target_polycount": 4000,
+    "target_formats": [
+      "glb"
+    ],
+    "moderation": true,
+    "prompt": "Single isolated compact futuristic ocean defense platform BASE ONLY, no turret and no guns. Wide squat hexagonal floating industrial metal fortress foundation, flat open upper deck with empty circular turret mounting pad at center. Six large angular armored pontoons, chunky readable beveled silhouettes, mechanical panel lines, pipes and vents, modular sci fi naval engineering, stylized game prop, symmetric, clean hard surface, no water, no scenery, no people, no text, centered object. Very wide and low proportions, width four times its height."
+  },
+  "output": "assets/meshy-platform.glb",
+  "bytes": 297660,
+  "triangles": 4006,
+  "processing": "Untextured preview; uniform metal material and scale/origin normalization at runtime. Moving turret remains procedural.",
+  "rights": "User-provided paid Meshy account; redistribution remains subject to applicable Meshy account terms. No original Aqua Turret assets used."
+}

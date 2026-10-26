@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#071822" />
+  <meta name="description" content="DaProdTurret — difendi l'avamposto. Una torre, un oceano, nessuna ritirata." />
+  <title>DaProdTurret · Avamposto 07</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <main class="console" id="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="DaProdTurret, avamposto 07"><span class="brand-mark" aria-hidden="true">╱╱</span><span>DAPROD<span class="brand-light">TURRET</span><small>COMANDO DIFESA COSTIERA / 07</small></span></a>
+      <div class="connection"><i></i> SISTEMI OPERATIVI</div>
+      <nav class="utility" aria-label="Comandi di sistema">
+        <button id="install-button" hidden class="install-button" aria-label="Installa DaProdTurret">Installa</button>
+        <button id="pause" class="icon-button" aria-label="Pausa" title="Pausa [P]">Ⅱ</button>
+        <button id="mute" class="icon-button" aria-label="Attiva audio" aria-pressed="false" title="Audio">♪<span class="mute-slash">/</span></button>
+        <button id="fullscreen" class="icon-button" aria-label="Schermo intero" title="Schermo intero">⛶</button>
+        <button id="help" class="icon-button" aria-label="Istruzioni" title="Istruzioni">?</button>
+      </nav>
+    </header>
+    <section class="telemetry" aria-label="Telemetria avamposto">
+      <div class="wave-stat"><span class="eyebrow">ONDATA</span><strong id="wave-value">00</strong><span class="wave-caption" id="phase-value">IN ATTESA</span></div>
+      <div class="meter-block"><div class="meter-label"><span>INTEGRITÀ</span><strong id="hp-value">100 / 100</strong></div><div class="meter"><span id="hp-bar"></span></div></div>
+      <div class="meter-block energy"><div class="meter-label"><span>ENERGIA</span><strong id="energy-value">100 / 100</strong></div><div class="meter"><span id="energy-bar"></span></div></div>
+      <div class="resource"><span class="eyebrow">ROTTAMI</span><strong id="scrap-value">45</strong></div>
+      <div class="resource research"><span class="eyebrow">RICERCA</span><strong id="research-value">0 <small>+0</small></strong></div>
+    </section>
+    <div class="workspace">
+      <section class="battlefield" aria-label="Campo di battaglia navale">
+        <div id="viewport" role="application" aria-label="Oceano tattico 3D. Tieni premuto su una nave per darle priorità."></div>
+        <div class="field-heading"><span class="eyebrow"><i class="live-dot"></i> SETTORE NORD / MARE APERTO</span><h1>Avamposto <span>07</span></h1><p>La linea tiene. Finché tieni tu.</p></div>
+        <div class="compass" aria-hidden="true"><span>N</span><b>⌖</b><span>S</span></div>
+        <div id="notice" class="notice" role="status">Avamposto pronto. Attendi il tuo comando.</div>
+        <div id="paused-banner" class="paused-banner" hidden><strong>SIMULAZIONE IN PAUSA</strong><span>Premi P o il comando pausa per riprendere</span></div>
+        <div class="field-footer"><span id="contacts">00 CONTATTI</span><span class="target-hint">TIENI PREMUTO PER FOCALIZZARE</span><span id="best-value">RECORD 00</span></div>
+        <div class="action-strip">
+          <button id="pulse" class="pulse-button"><span class="action-icon">◎</span><span><strong>Impulso EMP</strong><small id="pulse-detail">Spazio · scarica ad area</small></span><span class="keycap">SPAZIO</span></button>
+          <button id="start-wave" class="primary-button"><span id="start-label">Avvia ondata 01</span><span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="render-error" id="render-error" hidden>Il dispositivo non ha attivato WebGL. Aggiorna il browser o abilita l'accelerazione hardware. I comandi rimangono disponibili.</div>
+      </section>
+      <aside class="inspector" aria-label="Sistemi e potenziamenti">
+        <div class="inspector-title"><span class="eyebrow">ARSENALE / OFFICINA</span><span class="small-led">● ONLINE</span></div>
+        <section class="weapon-section"><div class="section-heading"><h2>Sistema d'arma</h2><span>01—03</span></div><div id="weapons" class="weapons"></div></section>
+        <section class="upgrade-section"><div class="section-heading"><h2>Potenziamenti</h2><span>ROTTAMI ↗</span></div><div id="upgrades" class="upgrades"></div></section>
+        <section class="tactics"><div class="section-heading"><h2>Direttive tattiche</h2><span>AUTO FIRE</span></div><label class="select-row" for="priority">Priorità bersaglio<select id="priority"><option value="nearest">Più vicino</option><option value="strongest">Più resistente</option><option value="weakest">Più debole</option></select></label><label class="toggle-row" for="auto-wave"><span>Ondata automatica<small>Avanza senza attendere ordini</small></span><input id="auto-wave" type="checkbox" role="switch" /><span class="switch" aria-hidden="true"></span></label></section>
+        <div class="extraction"><button id="extract" class="extract-button">↗ Estrai ricerca <span id="extract-value">+0</span></button><p>Rientra alla base. La ricerca resta con te.</p></div>
+        <div class="save-line"><span id="save-status">SALVATAGGIO LOCALE</span><button id="reset" aria-label="Cancella salvataggio e ricomincia">Nuova partita</button></div>
+      </aside>
+    </div>
+    <footer class="statusbar"><span><i></i> AVAMPOSTO 07 — DIFESA AUTONOMA</span><span id="combat-stats">DANNO 12 · CADENZA 1.0/s</span><span>PROTOCOLLO: RESISTERE</span></footer>
+  </main>
+  <dialog id="onboarding" class="briefing">
+    <span class="eyebrow">TRASMISSIONE IN ENTRATA / 07</span><div class="briefing-emblem" aria-hidden="true">⌖</div><h2>L'oceano non<br>sarà dalla tua parte.</h2><p>Una piattaforma. Un arsenale da costruire.<br>Difendi l'avamposto dalle flotte in arrivo.</p><ol><li><b>01</b><span><strong>La torre spara da sola.</strong> Tieni premuto su una nave per concentrarne il fuoco.</span></li><li><b>02</b><span><strong>Recupera. Potenzia. Resisti.</strong> Investi i rottami e cambia arma durante lo scontro.</span></li><li><b>03</b><span><strong>Non perdere la ricerca.</strong> Estraila tra le ondate per rendere più forte la prossima spedizione.</span></li></ol><button id="begin" class="primary-button">Inizia spedizione <span>↗</span></button><small class="briefing-foot">SPAZIO impulso · P pausa · 1 / 2 / 3 armi<br>Progressi salvati su questo dispositivo.</small>
+  </dialog>
+  <dialog id="help-dialog" class="briefing"><span class="eyebrow">MANUALE OPERATIVO</span><h2>Prendi il comando.</h2><p>Il fuoco è automatico. Tieni premuto sul mare per scegliere il bersaglio più vicino al punto indicato; rilascia per tornare alla priorità selezionata.</p><dl class="help-keys"><dt>Spazio</dt><dd>Impulso EMP: danno ad area, consuma energia.</dd><dt>1 · 2 · 3</dt><dd>Seleziona o acquista Cannone, Tesla, Railgun.</dd><dt>P</dt><dd>Metti in pausa la simulazione.</dd></dl><p>Ogni quinta ondata arriva una corazzata. La ricerca estratta aumenta il danno delle spedizioni future. Se perdi, i potenziamenti della spedizione si azzerano.</p><button class="primary-button" id="close-help">Ricevuto <span>↗</span></button></dialog>
+  <dialog id="defeat" class="briefing defeat"><span class="eyebrow">SEGNALE INTERROTTO</span><div class="briefing-emblem" aria-hidden="true">⌁</div><h2>L'avamposto<br>è caduto.</h2><p>Il mare ha vinto questa volta.<br>La ricerca acquisita resta. Torna più forte.</p><div class="debrief"><span>ONDATA RAGGIUNTA<strong id="defeat-wave">01</strong></span><span>NAVI AFFONDATE<strong id="defeat-kills">0</strong></span></div><button id="restart" class="primary-button">Nuova spedizione <span>↗</span></button></dialog>
+  <dialog id="confirm-dialog" class="briefing confirm"><span class="eyebrow">CONFERMA COMANDO</span><h2 id="confirm-title">Rientrare alla base?</h2><p id="confirm-description"></p><div class="confirm-actions"><button id="confirm-cancel">Annulla</button><button id="confirm-accept" class="primary-button">Conferma ↗</button></div></dialog>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
