@@ -1,49 +1,213 @@
 <!doctype html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#082c3a" />
-  <meta name="description" content="DaProdTurret — gioco di difesa navale." />
-  <title>DaProdTurret</title>
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" href="./icon-192.png" type="image/png" />
-  <link rel="apple-touch-icon" href="./icon-192.png" />
-  <link rel="stylesheet" href="./src/style.css" />
-</head>
-<body>
-  <main id="app" aria-label="DaProdTurret">
-    <div id="viewport" role="application" aria-label="Mare. Tocca per sparare, trascina per mirare."></div>
-    <div class="score-hud" aria-label="Punteggio"><span>ONDATA <b id="wave-value">0</b></span><span>PUNTI <b id="score-value">0</b></span></div>
-    <div id="boss-health" hidden role="meter" aria-label="Salute boss" aria-valuemin="0" aria-valuemax="100"><span>BOSS</span><div><i id="boss-bar"></i></div><b id="boss-value"></b></div>
-    <nav class="utility" aria-label="Gioco">
-      <button id="install-button" hidden aria-label="Installa DaProdTurret">↓</button>
-      <button id="pause" data-testid="pause-button" aria-label="Pausa" aria-pressed="false" title="Pausa [P]">Ⅱ</button>
-      <button id="mute" aria-label="Disattiva audio" aria-pressed="true" title="Audio [M]">♫</button>
-      <button id="fullscreen" aria-label="Schermo intero" title="Schermo intero">⛶</button>
-    </nav>
-    <div id="event-targets" aria-label="Rifornimenti"></div>
-    <div id="tower-hud" data-hp="120" data-energy="100" data-ammo="36" aria-label="Stato torre">
-      <div class="world-meter hp"><span>HP</span><div><i id="hp-bar"></i></div><b id="hp-value">120</b></div>
-      <div class="world-meter energy"><span>E</span><div><i id="energy-bar"></i></div><b id="energy-value">100</b></div>
-      <div class="world-meter ammo"><span id="ammo-label">AMMO</span><div><i id="ammo-bar"></i></div><b id="ammo-value">36/36</b></div>
-    </div>
-    <section id="upgrade-dock" hidden role="dialog" aria-modal="true" aria-labelledby="upgrade-title">
-      <header><h2 id="upgrade-title">Potenziamenti</h2><span><b id="scrap-value">60</b> ◇</span><button id="close-upgrades" data-testid="close-upgrades" aria-label="Chiudi potenziamenti">×</button></header>
-      <div id="upgrade-tabs" role="tablist" aria-label="Albero potenziamenti"></div>
-      <div id="upgrade-list"></div>
-      <footer><label><input id="auto-wave" type="checkbox" checked />Auto ondate</label><button id="continue-wave" data-testid="continue-button">Continua →</button></footer>
-    </section>
-    <div id="paused-banner" hidden><button id="resume">Riprendi ▷</button></div>
-    <div id="ready-screen" class="start-screen"><h1>DaProdTurret</h1><button id="begin" data-testid="start-button" class="primary">Gioca →</button></div>
-    <div id="defeat" class="start-screen" hidden><h2>Fine partita</h2><p>Punti <b id="final-score">0</b> · Ondata <b id="final-wave">0</b></p><p>Record <b id="high-score">0</b></p><button id="restart" class="primary" data-testid="restart-button">Riprova →</button></div>
-    <nav class="combat-controls" aria-label="Armi e abilità">
-      <div id="weapons" class="control-group"></div>
-      <div class="control-group abilities"><button id="pulse" data-testid="pulse-button" title="EMP [Spazio]" aria-label="EMP"><strong>◎</strong><span>EMP</span><small id="pulse-detail">60 E</small></button><button id="missile" data-testid="missile-button" title="Missili [X]" aria-label="Missili"><strong>↟</strong><span>Missili</span><small id="missile-detail">45 E</small></button><button id="open-upgrades" data-testid="upgrades-button" title="Potenziamenti [U]" aria-label="Potenziamenti"><strong>＋</strong><span>Upgrade</span><small id="scrap-compact">60 ◇</small></button></div>
-    </nav>
-    <button id="start-wave" data-testid="wave-button" class="wave-button" hidden>Ondata →</button>
-    <div id="render-error" role="alert" hidden>WebGL non disponibile. Attiva l'accelerazione hardware e ricarica.</div>
-  </main>
-  <script type="module" src="./src/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#082c3a" />
+    <meta
+      name="description"
+      content="DaProdTurret: difesa navale, tiro manuale e potenziamenti."
+    />
+    <title>DaProdTurret</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <main id="app" aria-label="DaProdTurret">
+      <div
+        id="viewport"
+        role="application"
+        tabindex="0"
+        aria-label="Mare. Tieni premuto per sparare; rotella o due dita per la camera."
+      ></div>
+      <div class="run-hud">
+        <span>Ondata <b id="wave-value">0</b></span
+        ><span>Soldi <b id="cash-value">0 $</b></span>
+      </div>
+      <div id="weather-status" role="status" hidden></div>
+      <div
+        id="boss-health"
+        hidden
+        role="meter"
+        aria-label="Salute boss"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <span>Boss</span>
+        <div><i id="boss-bar"></i></div>
+        <b id="boss-value"></b>
+      </div>
+      <nav class="utility" aria-label="Gioco">
+        <button id="install-button" hidden aria-label="Installa DaProdTurret">
+          Installa
+        </button>
+        <button
+          id="pause"
+          data-testid="pause-button"
+          aria-label="Pausa"
+          aria-pressed="false"
+          title="Pausa [P]"
+        >
+          Ⅱ
+        </button>
+        <button
+          id="mute"
+          aria-label="Disattiva audio"
+          aria-pressed="true"
+          title="Audio [M]"
+        >
+          ♫
+        </button>
+        <button
+          id="reset-camera"
+          aria-label="Ripristina camera"
+          title="Camera automatica"
+        >
+          ⊙
+        </button>
+        <button
+          id="fullscreen"
+          aria-label="Schermo intero"
+          title="Schermo intero"
+        >
+          ⛶
+        </button>
+      </nav>
+      <div
+        id="tower-hud"
+        data-hp="120"
+        data-energy="100"
+        data-heat="0"
+        aria-label="Stato torre"
+      >
+        <div class="world-meter hp">
+          <span>Scafo</span>
+          <div><i id="hp-bar"></i></div>
+          <b id="hp-value">120</b>
+        </div>
+        <div class="world-meter energy">
+          <span>Energia</span>
+          <div><i id="energy-bar"></i></div>
+          <b id="energy-value">100</b>
+        </div>
+        <div class="world-meter heat">
+          <span id="heat-label">Calore</span>
+          <div><i id="heat-bar"></i></div>
+          <b id="heat-value">0%</b>
+        </div>
+        <span id="overheat-status" role="status" hidden
+          >Raffreddamento forzato</span
+        >
+      </div>
+      <section
+        id="upgrade-dock"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upgrade-title"
+      >
+        <header>
+          <h2 id="upgrade-title">Arsenale</h2>
+          <span id="workshop-cash">0 $</span
+          ><button
+            id="close-upgrades"
+            data-testid="close-upgrades"
+            aria-label="Chiudi arsenale"
+          >
+            ×
+          </button>
+        </header>
+        <nav
+          id="upgrade-tabs"
+          role="tablist"
+          aria-label="Rami dell’albero"
+        ></nav>
+        <p id="tree-hint" hidden>Scorri l’albero</p>
+        <div
+          id="tree-scroll"
+          tabindex="0"
+          aria-label="Albero abilità. Scorri per esplorare i rami."
+        >
+          <div
+            id="skill-tree"
+            role="group"
+            aria-label="Prerequisiti e potenziamenti"
+          ></div>
+        </div>
+        <div id="skill-inspector">
+          <div>
+            <h3 id="skill-name">Seleziona un nodo</h3>
+            <p id="skill-description"></p>
+            <p id="skill-requirements"></p>
+          </div>
+          <div class="skill-actions">
+            <button id="equip-skill" hidden></button
+            ><button
+              id="buy-skill"
+              data-testid="buy-skill"
+              class="primary"
+              disabled
+            >
+              Acquista
+            </button>
+          </div>
+        </div>
+        <footer>
+          <div id="loadout" aria-label="Abilità equipaggiate"></div>
+          <button id="continue-wave" data-testid="continue-button">
+            Prossima ondata
+          </button>
+        </footer>
+      </section>
+      <div id="paused-banner" hidden><button id="resume">Riprendi</button></div>
+      <div id="ready-screen" class="start-screen">
+        <h1>DaProdTurret</h1>
+        <p>Tieni premuto per sparare. Dosa il calore.</p>
+        <button id="begin" data-testid="start-button" class="primary">
+          Gioca
+        </button>
+      </div>
+      <div id="defeat" class="start-screen" hidden>
+        <h2>Fine partita</h2>
+        <p>Ondata <b id="final-wave">0</b></p>
+        <p>Incassati <b id="final-earnings">0 $</b></p>
+        <p>Record ondata <b id="high-wave">0</b></p>
+        <button id="restart" class="primary" data-testid="restart-button">
+          Riprova
+        </button>
+      </div>
+      <nav class="combat-controls" aria-label="Armi e abilità">
+        <div id="weapons" class="control-group"></div>
+        <div id="abilities" class="control-group"></div>
+        <button
+          id="open-upgrades"
+          data-testid="upgrades-button"
+          title="Arsenale tra le ondate [U]"
+        >
+          Arsenale
+        </button>
+      </nav>
+      <button
+        id="start-wave"
+        data-testid="wave-button"
+        class="wave-button"
+        hidden
+      >
+        Prossima ondata
+      </button>
+      <div id="render-error" role="alert" hidden>
+        WebGL non disponibile. Attiva l’accelerazione hardware e ricarica.
+      </div>
+      <noscript
+        >DaProdTurret richiede JavaScript per il combattimento 3D. Abilitalo e
+        ricarica la pagina.</noscript
+      >
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
 </html>

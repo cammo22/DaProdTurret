@@ -1,0 +1,19 @@
+[
+  {
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "theme": "existing naval palette",
+    "referenceCommit": "6033bab2a8051b5454552d2e8e6cb8f27c483a42",
+    "signature": "Actual sea arena, world HUD and engine-backed prerequisite tree",
+    "material": "Real Meshy GLBs and real runtime state; no invented metrics or product mockups",
+    "before": {"floorFailures": 44, "reflex": 28},
+    "after": {"floorFailures": 0, "reflex": 0, "warnings": 0, "dismissed": 1},
+    "render": {"completed": true, "captures": 5, "viewports": ["1280x800", "1440x900", "1920x1080", "1440 full", "375 full"]},
+    "kept": {"fields": "0/1, user retired auto-wave", "testHooks": "7/9, replaced free ability buttons", "scriptHooks": "1/1", "headings": "2/3, Potenziamenti renamed Arsenale"},
+    "dismissals": {"25": "28ch short initial gameplay instruction is not running prose"},
+    "freshReview": {"passed": true, "summary": "Independent final re-review approved the queued-pinch fix and preserved single-tap queuing, 52 Node tests and four direct handler/engine checks passed."},
+    "installation": "Catalog skipped; upstream reference/tooling used directly, not claimed globally installed",
+    "state": "Local verification and independent review complete; publication gated by exact-commit GitHub Actions and live smoke"
+  }
+]

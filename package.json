@@ -1,6 +1,6 @@
 {
   "name": "daprod-turret",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,11 @@
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test"
   },
-  "dependencies": {"three": "^0.180.0"},
-  "devDependencies": {"vite": "^7.1.0", "@playwright/test": "^1.55.0"}
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0",
+    "@playwright/test": "^1.55.0"
+  }
 }

@@ -6,3 +6,12 @@ test-results/
 .env.*
 *.log
 .DS_Store
+.hallmark/before/
+.hallmark/after/
+.hallmark/render/
+.hallmark/*.png
+.hallmark/before.json
+.hallmark/before.txt
+.hallmark/compare.html
+.hallmark/shots/
+.hallmark/after.txt

@@ -1,30 +1,45 @@
-# DaProdTurret · v0.2
+# DaProdTurret v0.3
 
-Naval turret survival di DaProdProduzioni. Gioco 3D browser-first per PC e Android, pubblicabile senza backend su GitHub Pages.
+Difesa navale 3D di DaProdProduzioni per PC e Android, browser-first e senza backend.
 
 **Gioca:** https://cammo22.github.io/DaProdTurret/
 
 ## Combattimento
 
-- La torretta spara automaticamente; **click/touch forza il tiro sulla coordinata indicata**, anche nel mare vuoto. Tieni premuto e trascina per mirare manualmente; rilascia per tornare all'acquisizione automatica.
-- Le armi consumano **munizioni**, con caricatore e ricarica automatica. L'energia alimenta EMP e lanciamissili, non i colpi dell'arma principale.
-- **EMP:** colpisce e stordisce le navi, bloccando movimento e attacchi per la durata dello stun.
-- **Missili:** proiettili guidati con traiettorie, scie e impatto, separati dall'arma principale.
-- **Cannone:** proiettili fisici. **Tesla:** rimbalzi elettrici, sblocco all'ondata25. **Railgun:** carica prima del tiro perforante, sblocco all'ondata50.
-- Ogni arma ha potenziamenti propri. Le ondate avanzano automaticamente, ma **ogni10 ondate completate il gioco si ferma** per la preparazione.
-- Navi leggere, unità corazzate, navi che sparano a distanza, sottomarini/siluri, boss con barra vita ed eventi raccoglibili in mare.
+- **Tiro manuale:** click/touch sulla coordinata del mare, tieni premuto per sparare e trascina per mirare. Nessuna acquisizione automatica iniziale: l’autofire è un acquisto avanzato nell’albero.
+- **Calore al posto delle munizioni.** Le pause tra le raffiche raffreddano l’arma. Raggiungere il limite causa un blocco più lungo: conviene dosare il fuoco, non tenere sempre premuto.
+- **Soldi:** abbatti le navi e completa l’ondata per acquistare potenziamenti, armi e supporti. Nessun punteggio o seconda valuta di rottami.
+- **Cannone:** proiettili reali, con multishot acquistabile. **Tesla:** catena di fulmini. **Railgun:** carica e perforazione. Gli sblocchi dipendono da soldi e prerequisiti, non dalle ondate25/50.
+- **EMP, missili e bombardamento aereo:** prima acquistali, poi equipaggiali. Inizialmente puoi portare una sola abilità, con secondo e terzo slot acquistabili. L’energia alimenta le abilità, non i colpi principali.
+- I missili salgono, poi piombano sulle navi; un solo missile può essere assegnato alla stessa nave in contemporanea.
+- Le barche leggere puntano la torre ed esplodono all’impatto. Fregate/corazzate attaccano a distanza, i sottomarini si immergono e lanciano siluri, i boss hanno una barra salute.
+- **Eventi ambientali:** nebbia, tempesta e correnti con modificatori effettivi. Nessuna cassa o ricompensa casuale da raccogliere.
+- Dopo **ogni ondata** la partita si ferma: scegli cosa comprare e quali abilità portare, poi avvia la successiva.
 
-Il campo di gioco occupa lo schermo. Integrità, energia e munizioni sono ancorate sotto la torretta; i potenziamenti si aprono come overlay in-game e fermano il combattimento. Non ci sono sidebar, bussola, ricerca, prestigio o ricompense offline.
+La camera prospettica è meno verticale e adatta l’inquadratura all’affollamento. Regola lo zoom con rotella o pinch a due dita; il pulsante camera ripristina la distanza automatica. Il pinch non attiva il tiro.
 
-**Alla sconfitta la partita finisce.** Si conserva il record, non i potenziamenti della partita precedente. Audio abilitato di default; il browser richiede comunque il primo click/touch per avviare l'audio.
+Integrità, energia e calore restano sotto la torretta. L’albero è un overlay sul mare con rami collegati, prerequisiti, prezzi e selezione del carico; nessuna sidebar o schermata marketing. Audio attivo dal primo gesto richiesto dal browser.
+
+**Alla sconfitta la partita finisce:** conservi il record, non acquisti o bonus di combattimento. Niente ricerca, prestigio o risorse offline.
+
+## Comandi
+
+| PC | Azione |
+|---|---|
+| Click / trascina tenendo premuto | Spara / mira |
+| Rotella | Regola camera |
+| 1, 2, 3 | Cannone, Tesla, Railgun acquistate |
+| Spazio, X, C | Prima, seconda, terza abilità equipaggiata |
+| U | Arsenale tra le ondate |
+| P / M | Pausa / audio |
+
+Su touch: tocco o trascinamento con un dito per il fuoco, due dita per la camera. I pulsanti in-game attivano le abilità equipaggiate.
 
 ## Piattaforme e salvataggi
 
-Browser moderno con WebGL2. Installazione PWA disponibile nei browser compatibili su HTTPS. Dopo la prima apertura online e il completamento della cache, è possibile riaprire il gioco offline.
+Browser moderno con WebGL2. Installazione PWA nei browser compatibili su HTTPS. Dopo prima apertura online e completamento cache, la build statica può riaprire offline. L’app non è un APK nativo né una pubblicazione Play Store; Android emulato non verifica la GPU di un telefono fisico.
 
-Non è un APK nativo, non è sul Play Store e non sostituisce una verifica su un telefono Android fisico. I test browser emulano dimensioni, input touch e interfaccia mobile, non la GPU di ogni telefono.
-
-Salvataggi locali al browser e all'origine. Il salvataggio dell'anteprima `localhost` non passa automaticamente a GitHub Pages. I dati v0.1 vengono migrati solo per conservare il record; ricerca e bonus precedenti non vengono trasferiti. Tempo trascorso offline non produce risorse.
+Salvataggi v3 locali al browser e all’origine; localhost e Pages non condividono i dati. Le vecchie versioni v1/v2 conservano solo i record compatibili, non riportano nel gioco munizioni, ricerca, vecchi punti o sblocchi per ondata. Nessuna ricompensa dal tempo offline.
 
 ## Sviluppo
 
@@ -39,26 +54,26 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-La cartella `dist/` è il sito statico. Per provarla:
+`dist/` è il sito statico, da servire via HTTP/HTTPS, non con `file://`:
 
 ```sh
 npm run preview -- --port 4173
 ```
 
-Non aprire il gioco con `file://`: servilo via HTTP/HTTPS. Per accesso dal telefono sulla stessa rete usa l'indirizzo LAN mostrato da Vite; installazione e cache PWA richiedono HTTPS o localhost.
+Per accesso dal telefono sulla stessa rete usa l’indirizzo LAN mostrato da Vite. Installazione e cache PWA richiedono HTTPS o localhost.
 
-## Asset e riferimenti
+## Asset e qualità
 
-- `public/assets/fleet/manifest.json`: modelli Meshy delle armi e delle classi navali; prompt, task e costo reale documentati dalla pipeline.
-- `docs/ASSETS.md`: provenienza, generazione e preparazione degli asset.
-- `docs/REFERENCE.md`: ricerca su Aqua Turret e distinzione tra fatti verificati e aspetti non accertati.
-- `docs/BALANCE.md`: regole del motore e risultati delle simulazioni, non una dichiarazione di divertimento o bilanciamento perfetto.
-- `REVISION-V02.md`: requisiti del playtest che ha guidato la riscrittura.
+- `public/assets/fleet/manifest.json` e `docs/ASSETS.md`: Meshy, prompt, task, costi reali e hash. Nessun asset Flash originale copiato.
+- `docs/REFERENCE.md`: fonti Aqua Turret e distinzione tra contenuto verificato e parità non ancora raggiunta.
+- `docs/BALANCE.md`: regole e simulazioni; nessuna promessa di divertimento o equilibrio perfetto.
+- `REVISION-V03.md`: contratto attivo, che sostituisce le decisioni incompatibili della v0.2.
+- `.hallmark/preflight.json`: applicazione di [Hallmark](https://github.com/Nutlope/hallmark) alla UI. Token, focus, leggibilità, riduzione movimento e controlli verificabili, non un template di landing page.
 
-Nessun asset originale del gioco Flash copiato. La key Meshy resta nell'ambiente privato di generazione: non entra nel gioco, nella build, nei salvataggi o nel workflow GitHub. Le condizioni applicabili agli output Meshy restano quelle dell'account che li ha generati.
+La key Meshy resta nell’ambiente privato di generazione e non entra nel gioco, build, salvataggi o workflow. Le condizioni degli output restano quelle dell’account che li ha generati.
 
 ## Pubblicazione
 
-Il workflow `.github/workflows/pages.yml` esegue test, build, prove browser e deploy. In Settings → Pages la sorgente è GitHub Actions. Tutti i percorsi e la cache offline supportano il sottopercorso `/DaProdTurret/`.
+`.github/workflows/pages.yml` verifica motore/build/browser e pubblica su GitHub Pages. Percorsi relativi e cache supportano `/DaProdTurret/`. Testare il commit esatto e leggere il risultato del deploy prima di dichiarare aggiornata la versione online.
 
-Dipendenze: Three.js e Vite (MIT), Playwright (Apache-2.0). Copyright DaProdProduzioni. Alpha in sviluppo: il prossimo criterio è il feedback del giocatore, non aggiungere contenuti senza provarli.
+Dipendenze: Three.js e Vite (MIT), Playwright (Apache-2.0). Copyright DaProdProduzioni.

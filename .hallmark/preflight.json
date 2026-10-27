@@ -1,0 +1,19 @@
+{
+  "scanned": "2026-10-27",
+  "reference": "https://github.com/Nutlope/hallmark/tree/6033bab2a8051b5454552d2e8e6cb8f27c483a42",
+  "scope": "app",
+  "findings": {
+    "fonts": "Bahnschrift / DIN Alternate / Arial Narrow, src/style.css:1",
+    "palette": "Marine blue / warm amber / cool electric accents, src/style.css:1",
+    "motion": "Three.js renderer with reduced-motion handling, src/renderer.js",
+    "framework": "Vite 7 + Three.js, package.json:13-14",
+    "interaction": "Pointer sea-plane aiming and world-anchored station HUD, src/main.js"
+  },
+  "preserve": ["Marine arena and original Meshy fleet", "Italian copy", "Fullscreen world and world-anchored health", "PWA and gesture-gated audio"],
+  "introduce": ["Money / heat replacing score / ammo", "True prerequisite tree with purchase inspector", "Ability loadout slots", "Controllable cinematic camera", "Environmental combat modifiers"],
+  "dropped_by_user": ["Random collectible pickups", "Ammo and magazine reload", "Score", "Initially free autofire", "Wave-number weapon gates", "Automatic wave progression"],
+  "files": {"edit": ["index.html", "src/style.css", "src/main.js", "src/engine.js", "src/renderer.js"], "delete": []},
+  "before": {"static_floor_failures": 44, "reflex_findings": 28, "render": "5 upstream captures:1280/1440/1920 folds plus1440/375 full pages; old UI ready screen at localhost5180"},
+  "beforeAliases": {"sourceHtml": "/home/cammo/Scrivania/DaProdTurret-v02/index.html", "targetHtml": "index.html", "sourceUrl":"http://localhost:5180/", "targetUrl":"http://localhost:5181/", "note":"Only target identities mapped in before.json for archived worktree comparison; original observed wiring, headings and counts unchanged."},
+  "installation": "Catalog installation skipped; upstream files read directly, tooling kept in isolated scratch folder. Not claimed globally installed."
+}

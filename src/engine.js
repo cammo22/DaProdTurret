@@ -1,18 +1,41 @@
 // Pure deterministic arcade simulation. Coordinates and velocities are world units/seconds.
 export const WEAPONS = Object.freeze({
-  cannon:{name:'Cannone',description:'Proiettili diretti.',unlockWave:1,color:0xffbc61,ammoCost:1},
-  tesla:{name:'Tesla',description:'Rimbalzi elettrici sequenziali.',unlockWave:25,color:0x56e6ff,ammoCost:2},
-  rail:{name:'Railgun',description:'Carica e perfora.',unlockWave:50,color:0xb6a2ff,ammoCost:4},
+  cannon:{name:'Cannone',description:'Proiettili diretti.',unlockCost:0,color:0xffbc61},
+  tesla:{name:'Tesla',description:'Rimbalzi elettrici sequenziali.',unlockCost:180,color:0x56e6ff},
+  rail:{name:'Railgun',description:'Carica e perfora.',unlockCost:280,color:0xb6a2ff},
 });
-export const UPGRADES = Object.freeze({
-  hull:{name:'Scafo',description:'+30 HP e riparazione.',baseCost:45},
-  reactor:{name:'Reattore',description:'+20 energia, rigenerazione e abilità.',baseCost:45},
-  salvage:{name:'Recupero',description:'+18% rottami dalle navi.',baseCost:40},
+export const ABILITIES = Object.freeze({
+  emp:{name:'EMP',energyCost:60,cooldown:12},
+  missiles:{name:'Missili',energyCost:45,cooldown:9},
+  airstrike:{name:'Attacco aereo',energyCost:80,cooldown:18},
 });
-export const WEAPON_UPGRADES = Object.freeze({
-  cannon:{damage:{name:'Danno',description:'+30% danno.',baseCost:30},rate:{name:'Cadenza',description:'+18% cadenza.',baseCost:35},magazine:{name:'Caricatore',description:'+8 munizioni, ricarica più rapida.',baseCost:35}},
-  tesla:{damage:{name:'Danno',description:'+30% danno.',baseCost:55},bounces:{name:'Rimbalzi',description:'+1 rimbalzo.',baseCost:65},range:{name:'Arco',description:'+1 portata rimbalzi, ricarica più rapida.',baseCost:50}},
-  rail:{damage:{name:'Danno',description:'+35% danno.',baseCost:70},charge:{name:'Carica',description:'Carica e ricarica più rapide.',baseCost:65},pierce:{name:'Perfora',description:'+1 bersaglio perforato.',baseCost:70}},
+const node=(name,description,cost,max,parents,branch,kind='upgrade')=>
+  Object.freeze({name,description,cost,max,parents:Object.freeze(parents),branch,kind});
+export const SKILLS = Object.freeze({
+  unlockTesla:node('Tesla','Sblocca Tesla.',180,1,[],'tesla','unlock'),
+  unlockRail:node('Railgun','Sblocca Railgun.',280,1,[],'rail','unlock'),
+  unlockEmp:node('EMP','Sblocca impulso stordente.',90,1,[],'abilities','unlock'),
+  unlockMissiles:node('Missili','Un missile per nave in superficie.',140,1,[],'abilities','unlock'),
+  unlockAirstrike:node('Attacco aereo','Passaggio con bombe ad area.',240,1,[],'abilities','unlock'),
+  cannonDamage:node('Danno cannone','+30% danno base.',30,20,[],'cannon'),
+  cannonRate:node('Cadenza','+18% cadenza base.',40,12,[],'cannon'),
+  cannonCooling:node('Raffreddamento','+4 calore/s dissipato.',40,12,[],'cannon'),
+  cannonCapacity:node('Capacità termica','+20 capacità termica.',45,12,[],'cannon'),
+  cannonMultishot:node('Multicolpo','+1 proiettile reale per colpo.',150,4,['cannonDamage'],'cannon'),
+  towerHull:node('Scafo','+30 HP e riparazione.',45,20,[],'tower'),
+  towerReactor:node('Reattore','+20 energia e +2 rigenerazione/s.',45,20,[],'tower'),
+  autofire:node('Fuoco automatico','Acquisizione automatica; calore sempre attivo.',1500,1,['cannonRate','cannonCooling','cannonCapacity'],'tower','unlock'),
+  slot2:node('Secondo slot','Equipaggia due abilità.',220,1,['unlockEmp'],'abilities','slot'),
+  slot3:node('Terzo slot','Equipaggia tre abilità.',420,1,['slot2','unlockMissiles','unlockAirstrike'],'abilities','slot'),
+  teslaDamage:node('Danno Tesla','+30% danno base.',55,20,['unlockTesla'],'tesla'),
+  teslaBounces:node('Rimbalzi','+1 rimbalzo.',65,9,['unlockTesla'],'tesla'),
+  teslaRange:node('Arco','+1 portata rimbalzi.',50,10,['unlockTesla'],'tesla'),
+  railDamage:node('Danno Railgun','+35% danno base.',70,20,['unlockRail'],'rail'),
+  railCharge:node('Carica','Carica più rapida.',65,12,['unlockRail'],'rail'),
+  railPierce:node('Perfora','+1 bersaglio perforato.',70,17,['unlockRail'],'rail'),
+  empPower:node('EMP potenziato','+0.4s stordimento.',85,5,['unlockEmp'],'abilities'),
+  missileDamage:node('Testate','+20 danno missili.',85,10,['unlockMissiles'],'abilities'),
+  airstrikeDamage:node('Bombe','+25 danno bombe.',100,10,['unlockAirstrike'],'abilities'),
 });
 const has=(o,k)=>typeof k==='string'&&Object.hasOwn(o,k);
 const bounded=(v,fallback,max,integer=false)=>{
@@ -20,25 +43,28 @@ const bounded=(v,fallback,max,integer=false)=>{
   const n=Math.max(0,Math.min(max,v)); return integer?Math.floor(n):n;
 };
 export function createGame(now=Date.now()) {
-  return {version:2,phase:'ready',wave:0,bestWave:0,highScore:0,score:0,scrap:60,hp:120,
-    energy:100,ammo:36,reloadTimer:0,kills:0,weapon:'cannon',unlocked:['cannon'],priority:'nearest',autoWave:true,
-    upgrades:{hull:0,reactor:0,salvage:0},
-    weaponUpgrades:{cannon:{damage:0,rate:0,magazine:0},tesla:{damage:0,bounces:0,range:0},rail:{damage:0,charge:0,pierce:0}},
+  return {version:3,phase:'ready',wave:0,highWave:0,bestEarnings:0,cash:60,earnedMoney:0,hp:120,
+    energy:100,kills:0,weapon:'cannon',unlocked:['cannon'],priority:'nearest',autoWave:false,
+    skills:Object.fromEntries(Object.keys(SKILLS).map(id=>[id,0])),loadout:[],
+    heat:0,overheated:false,overheatTimer:0,
+    environment:{type:'calm',timeLeft:0,duration:0,dx:0,dz:0},
     enemies:[],projectiles:[],effects:[],events:[],time:0,waveKills:0,waveTotal:0,spawnRemaining:0,spawnTimer:0,
-    cooldown:0,pulseCooldown:0,missileCooldown:0,nextId:1,aim:null,pendingManual:null,charge:null,notice:'',
+    cooldown:0,pulseCooldown:0,missileCooldown:0,airstrikeCooldown:0,nextId:1,aim:null,pendingManual:null,charge:null,notice:'',
     lastSavedAt:bounded(now,0,8.64e15,true)};
 }
 export function stats(g,weapon=g.weapon) {
   if(!has(WEAPONS,weapon)) weapon='cannon';
-  const u=g.upgrades,w=g.weaponUpgrades[weapon];
-  return {damage:weapon==='rail'?110*(1+w.damage*0.35):weapon==='tesla'?30*(1+w.damage*0.3):20*(1+w.damage*0.3),
-    fireRate:weapon==='cannon'?2.4*(1+w.rate*0.18):weapon==='tesla'?1.7:0.85,
-    maxHp:120+u.hull*30,maxEnergy:100+u.reactor*20,energyRegen:10+u.reactor*2,
-    range:26,maxAmmo:36+(weapon==='cannon'?w.magazine*8:0),
-    reloadTime:weapon==='cannon'?Math.max(0.55,2.4/(1+w.magazine*0.12)):weapon==='tesla'?Math.max(0.6,2.6/(1+w.range*0.08)):Math.max(0.7,3/(1+w.charge*0.1)),
-    ammoCost:WEAPONS[weapon].ammoCost,chargeTime:weapon==='rail'?Math.max(0.2,0.85/(1+w.charge*0.18)):0,
-    bounces:weapon==='tesla'?Math.min(12,3+w.bounces):0,pierce:weapon==='rail'?Math.min(20,3+w.pierce):1,
-    stunDuration:2.8+Math.min(2,u.reactor*0.1),missileCount:3+Math.min(3,Math.floor(u.reactor/3))};
+  const level=id=>skillLevel(g,id),reactor=level('towerReactor');
+  return {damage:weapon==='rail'?110*(1+level('railDamage')*0.35):weapon==='tesla'?30*(1+level('teslaDamage')*0.3):20*(1+level('cannonDamage')*0.3),
+    fireRate:weapon==='cannon'?2.4*(1+level('cannonRate')*0.18):weapon==='tesla'?1.7:0.85,
+    maxHp:120+level('towerHull')*30,maxEnergy:100+reactor*20,energyRegen:10+reactor*2,
+    range:g.environment.type==='fog'?17:26,
+    heatCapacity:100+level('cannonCapacity')*20,coolingRate:(24+level('cannonCooling')*4)*(g.environment.type==='storm'?0.65:1),
+    overheatRecovery:4,heatPerShot:weapon==='rail'?38:weapon==='tesla'?23:20,
+    projectileCount:weapon==='cannon'?1+level('cannonMultishot'):1,
+    chargeTime:weapon==='rail'?Math.max(0.2,0.85/(1+level('railCharge')*0.18)):0,
+    bounceRange:6+level('teslaRange'),bounces:weapon==='tesla'?3+level('teslaBounces'):0,pierce:weapon==='rail'?3+level('railPierce'):1,
+    stunDuration:2.8+level('empPower')*0.4};
 }
 
 export const LIMITS=Object.freeze({enemies:40,projectiles:256,effects:200,events:8});
@@ -56,9 +82,10 @@ function projectile(g,kind,owner,x,z,tx,tz,speed,damage,extra={}) {
 }
 export function startWave(g) {
   if(!['ready','intermission','upgrade'].includes(g.phase)||g.hp<=0||g.wave>=1000) return false;
+  g._checkpoint=snapshot(g);
   g.phase='combat';g.wave++;g.waveKills=0;g.waveTotal=Math.min(40,6+g.wave);
-  g.spawnRemaining=g.waveTotal;g.spawnTimer=0;unlockWeapons(g);
-  if(g.wave===2||g.wave%3===0) spawnSeaEvent(g);
+  g.spawnRemaining=g.waveTotal;g.spawnTimer=0;syncWeapons(g);
+  g.autoWave=false;g.events=[];startEnvironment(g);
   return true;
 }
 function target(g) {
@@ -66,56 +93,64 @@ function target(g) {
   const rank=e=>g.priority==='strongest'?-e.hp:g.priority==='weakest'?e.hp:Math.hypot(e.x,e.z);
   return eligible.sort((a,b)=>rank(a)-rank(b)||a.id-b.id)[0];
 }
+function addHeat(g) {
+  const s=stats(g);g.heat=Math.min(s.heatCapacity,g.heat+s.heatPerShot);
+  if(g.heat>=s.heatCapacity-1e-9) {
+    g.overheated=true;g.overheatTimer=s.overheatRecovery;g.pendingManual=null;
+    effect(g,'overheat',0,0,0,0,0.5);
+  }
+}
 function fire(g) {
-  if(g.phase!=='combat'||g.cooldown>1e-9||g.reloadTimer>0||g.charge||g.projectiles.length>=LIMITS.projectiles) return false;
-  const s=stats(g); if(g.ammo<s.ammoCost) return false;
+  const s=stats(g);
+  if(g.phase!=='combat'||g.hp<=0||g.cooldown>1e-9||g.overheated||g.charge||
+    g.projectiles.length+s.projectileCount>LIMITS.projectiles) return false;
   const held=g.aim&&point(g.aim.x,g.aim.z)?g.aim:null;
-  const aim=g.pendingManual||held||target(g); if(!aim) return false;
+  const aim=g.pendingManual||(skillLevel(g,'autofire')?(held||target(g)):null);if(!aim) return false;
   const manual=!!(g.pendingManual||held);
   if(g.weapon==='rail') {
-    g.ammo-=s.ammoCost;g.pendingManual=null;
-    g.charge={x:aim.x,z:aim.z,remaining:s.chargeTime,duration:s.chargeTime};
-    g._chargeManual=manual;effect(g,'charge',0,0,aim.x,aim.z,s.chargeTime);return true;
+    g.pendingManual=null;g.charge={x:aim.x,z:aim.z,remaining:s.chargeTime,duration:s.chargeTime};
+    g._chargeManual=manual;effect(g,'charge',0,0,aim.x,aim.z,s.chargeTime);addHeat(g);return true;
   }
   if(g.weapon==='tesla') projectile(g,'tesla-orb','player',0,0,aim.x,aim.z,46,s.damage,
     {bouncesLeft:s.bounces,hitIds:[],sx:0,sz:0});
-  else projectile(g,'shell','player',0,0,aim.x,aim.z,32,s.damage);
-  g.ammo-=s.ammoCost;g.cooldown=1/s.fireRate;
-  if(g.ammo<s.ammoCost) g.reloadTimer=s.reloadTime;
-  g.lastShot={x:aim.x,z:aim.z,weapon:g.weapon,time:g.time,manual};
-  effect(g,'muzzle',0,0,aim.x,aim.z,0.12); effect(g,'shot',0,0,aim.x,aim.z,0.18);
-  g.pendingManual=null;return true;
+  else {
+    const d=Math.hypot(aim.x,aim.z),nx=d?-aim.z/d:1,nz=d?aim.x/d:0;
+    for(let i=0;i<s.projectileCount;i++) {
+      const spread=(i-(s.projectileCount-1)/2)*0.5;
+      projectile(g,'shell','player',0,0,aim.x+nx*spread,aim.z+nz*spread,32,s.damage);
+    }
+  }
+  g.cooldown=1/s.fireRate;g.lastShot={x:aim.x,z:aim.z,weapon:g.weapon,time:g.time,manual};
+  effect(g,'muzzle',0,0,aim.x,aim.z,0.12);effect(g,'shot',0,0,aim.x,aim.z,0.18);
+  g.pendingManual=null;addHeat(g);return true;
 }
 export function manualFire(g,x,z) {
-  if(g.phase!=='combat'||!point(x,z)) return false;
+  if(g.phase!=='combat'||g.hp<=0||g.overheated||!point(x,z)) return false;
   g.pendingManual={x,z};fire(g);return true;
 }
 function step(g,dt) {
   if(g.phase==='defeat') return;
   g.time+=dt;
   g.effects=g.effects.filter(e=>(e.ttl-=dt)>0);
-  g.events=g.events.filter(e=>(e.ttl-=dt)>0);
+  g.events=[];g.autoWave=false;
+  if(g.phase==='combat') updateEnvironment(g,dt);
   g.cooldown=Math.max(0,g.cooldown-dt);
   g.pulseCooldown=Math.max(0,g.pulseCooldown-dt);
   g.missileCooldown=Math.max(0,g.missileCooldown-dt);
+  g.airstrikeCooldown=Math.max(0,g.airstrikeCooldown-dt);
   const s=stats(g);
   g.energy=Math.min(s.maxEnergy,g.energy+s.energyRegen*dt);
-  if(g.reloadTimer>0) {
-    g.reloadTimer=Math.max(0,g.reloadTimer-dt);
-    if(g.reloadTimer<1e-9) {g.reloadTimer=0;g.ammo=s.maxAmmo;}
-  } else if(g.ammo<s.ammoCost&&!g.charge) g.reloadTimer=s.reloadTime;
-  if(g.phase!=='combat') {
-    if(g.phase==='intermission') {
-      g.spawnTimer=Math.max(0,g.spawnTimer-dt);
-      updateProjectiles(g,dt);
-      if(g.autoWave&&g.spawnTimer<=1e-9) startWave(g);
-    }
-    return;
-  }
+  if(g.overheated) {
+    g.overheatTimer=Math.max(0,g.overheatTimer-dt);
+    g.heat=Math.max(0,g.heat-s.heatCapacity/s.overheatRecovery*dt);
+    if(g.overheatTimer<1e-9) {g.overheatTimer=0;g.overheated=false;g.heat=0;}
+  } else if(!g.charge) g.heat=Math.max(0,g.heat-s.coolingRate*dt);
+  if(g.phase!=='combat') return;
   g.spawnTimer-=dt;
   if(g.spawnRemaining>0&&g.spawnTimer<=0) {spawn(g);g.spawnTimer+=Math.max(0.45,1.05-g.wave*0.009);}
   reap(g);
   updateEnemies(g,dt);
+  reap(g);
   updateCharge(g,dt);
   fire(g);
   updateProjectiles(g,dt);
@@ -128,13 +163,15 @@ export function tick(g,dt) {
   while(left>1e-10) {const delta=Math.min(left,1/60);step(g,delta);left-=delta;}
 }
 
-function addScore(g,amount) {g.score=Math.min(1e9,g.score+amount);g.highScore=Math.max(g.highScore,g.score);}
+function earn(g,amount) {
+  g.cash=Math.min(1e9,g.cash+amount);g.earnedMoney=Math.min(1e9,g.earnedMoney+amount);
+  g.bestEarnings=Math.max(g.bestEarnings,g.earnedMoney);
+}
 function reap(g) {
   g.enemies=g.enemies.filter(e=>{
     if(e.hp>0) return true;
-    g.scrap=Math.min(1e9,g.scrap+Math.round(e.reward*(1+g.upgrades.salvage*0.18)));
-    g.kills++;g.waveKills++;addScore(g,Math.round(e.reward*10));
-    effect(g,'explosion',e.x,e.z,e.x,e.z,0.55);return false;
+    if(!e.rammed) {earn(g,e.reward);g.kills++;g.waveKills++;}
+    effect(g,e.rammed?'ram':'explosion',e.x,e.z,e.x,e.z,0.55);return false;
   });
 }
 // First contact along a segment, including starting overlaps and tangency.
@@ -150,11 +187,12 @@ function radius(e) {return e.type==='boss'?1.5:e.type==='armored'?0.85:0.65;}
 function updateProjectiles(g,dt) {
   const live=[];
   for(const p of g.projectiles) {
+    if(p.kind==='missile') {if(updateMissile(g,p,dt)) live.push(p);continue;}
+    if(p.kind==='aircraft') {if(updateAircraft(g,p,dt)) live.push(p);continue;}
+    if(p.kind==='bomb') {if(updateBomb(g,p,dt)) live.push(p);continue;}
     if(p.targetId!==undefined) {
-      let t=g.enemies.find(e=>e.id===p.targetId&&e.hp>0&&!e.submerged);
-      if(!t&&p.kind==='missile') t=g.enemies.filter(e=>e.hp>0&&!e.submerged)
-        .sort((a,b)=>Math.hypot(a.x-p.x,a.z-p.z)-Math.hypot(b.x-p.x,b.z-p.z)||a.id-b.id)[0];
-      if(t) {p.targetId=t.id;p.tx=t.x;p.tz=t.z;}
+      const t=g.enemies.find(e=>e.id===p.targetId&&e.hp>0&&!e.submerged);
+      if(t) {p.tx=t.x;p.tz=t.z;}
     }
     const direction=Math.hypot(p.tx-p.x,p.tz-p.z);
     p.vx=direction?(p.tx-p.x)/direction*p.speed:0;p.vz=direction?(p.tz-p.z)/direction*p.speed:0;
@@ -173,12 +211,11 @@ function updateProjectiles(g,dt) {
     }
     p.ttl-=dt;
     if(hit) {
-      if(p.kind==='missile') missileBlast(g,p,p.x+(nx-p.x)*first,p.z+(nz-p.z)*first);
-      else hit.hp-=p.damage;
+      hit.hp-=p.damage;
       effect(g,'hit',p.x+(nx-p.x)*first,p.z+(nz-p.z)*first);
       if(p.kind==='tesla-orb') {
         effect(g,'tesla',p.sx,p.sz,hit.x,hit.z,0.22);p.hitIds.push(hit.id);
-        const reach=6+g.weaponUpgrades.tesla.range;
+        const reach=stats(g,'tesla').bounceRange;
         const next=g.enemies.filter(e=>e.hp>0&&!e.submerged&&!p.hitIds.includes(e.id)&&Math.hypot(e.x-hit.x,e.z-hit.z)<=reach)
           .sort((a,b)=>Math.hypot(a.x-hit.x,a.z-hit.z)-Math.hypot(b.x-hit.x,b.z-hit.z)||a.id-b.id)[0];
         if(next&&p.bouncesLeft>0&&p.ttl>0) {
@@ -188,7 +225,7 @@ function updateProjectiles(g,dt) {
       }
     }
     else if(travel>=distance-1e-9||p.ttl<=0) {
-      if(p.kind==='missile') missileBlast(g,p,nx,nz);else effect(g,'splash',nx,nz);
+      effect(g,'splash',nx,nz);
     }
     else {p.x=nx;p.z=nz;live.push(p);}
   }
@@ -196,8 +233,8 @@ function updateProjectiles(g,dt) {
 }
 
 export function pulse(g) {
-  if(g.phase!=='combat'||g.hp<=0||g.energy<60||g.pulseCooldown>0) return false;
-  const s=stats(g);g.energy-=60;g.pulseCooldown=12;
+  if(!abilityReady(g,'emp')) return false;
+  const s=stats(g);spendAbility(g,'emp');
   effect(g,'pulse',0,0,0,0,0.7);
   for(const e of g.enemies) if(e.hp>0&&Math.hypot(e.x,e.z)<=s.range) {
     e.stunnedFor=Math.max(e.stunnedFor,s.stunDuration);
@@ -209,6 +246,18 @@ function updateEnemies(g,dt) {
   for(const e of g.enemies) {
     if(e.hp<=0) continue;
     if(e.stunnedFor>0) {e.stunnedFor=Math.max(0,e.stunnedFor-dt);continue;}
+    if(g.environment.type==='current'&&!e.submerged) {e.x+=g.environment.dx*dt;e.z+=g.environment.dz*dt;}
+    if(e.type==='skiff') {
+      // Station-only kamikaze: no ranged attack and no salvage for contact deaths.
+      const distance=Math.hypot(e.x,e.z);
+      if(e.speed>0) e.speed=Math.min(3.6,e.speed+0.28*dt);
+      const move=Math.min(e.speed*dt,Math.max(0,distance-2.8));
+      if(distance>0) {e.x*=1-move/distance;e.z*=1-move/distance;}
+      if(Math.hypot(e.x,e.z)<=2.8+1e-7) {
+        g.hp=Math.max(0,g.hp-10);e.rammed=true;e.hp=0;
+      }
+      continue;
+    }
     if(e.type==='submarine') {
       e.diveTimer-=dt;
       if(e.diveTimer<=1e-9) {
@@ -240,57 +289,100 @@ function updateCharge(g,dt) {
   effect(g,'rail',0,0,tx,tz,0.45);effect(g,'muzzle',0,0,c.x,c.z,0.2);
   g.lastShot={x:c.x,z:c.z,weapon:'rail',time:g.time,manual:!!g._chargeManual};
   delete g._chargeManual;g.charge=null;g.cooldown=1/s.fireRate;
-  if(g.ammo<s.ammoCost) g.reloadTimer=s.reloadTime;
   reap(g);
 }
 
+const abilityClock={emp:'pulseCooldown',missiles:'missileCooldown',airstrike:'airstrikeCooldown'};
+function abilityReady(g,id) {
+  return g.phase==='combat'&&g.hp>0&&skillLevel(g,abilityUnlock[id])>0&&g.loadout.includes(id)&&
+    g.energy>=ABILITIES[id].energyCost&&g[abilityClock[id]]<=1e-9;
+}
+function spendAbility(g,id) {g.energy-=ABILITIES[id].energyCost;g[abilityClock[id]]=ABILITIES[id].cooldown;}
+export function useAbility(g,id) {
+  if(!has(ABILITIES,id)) return false;
+  return id==='emp'?pulse(g):id==='missiles'?launchMissiles(g):launchAirstrike(g);
+}
 export function launchMissiles(g) {
-  const s=stats(g),targets=g.enemies.filter(e=>e.hp>0&&!e.submerged&&Math.hypot(e.x,e.z)<=26)
-    .sort((a,b)=>b.hp-a.hp||a.id-b.id);
-  if(g.phase!=='combat'||g.hp<=0||g.energy<45||g.missileCooldown>0||!targets.length||g.projectiles.length+s.missileCount>LIMITS.projectiles) return false;
-  g.energy-=45;g.missileCooldown=9;
-  for(let i=0;i<s.missileCount;i++) {
-    const t=targets[i%targets.length];
-    projectile(g,'missile','player',(i-(s.missileCount-1)/2)*0.4,0,t.x,t.z,20,65+g.upgrades.reactor*5,{targetId:t.id,radius:0.3});
+  const assigned=new Set(g.projectiles.filter(p=>p.kind==='missile'&&p.targetId!==null).map(p=>p.targetId));
+  const targets=g.enemies.filter(e=>e.hp>0&&!e.submerged&&!assigned.has(e.id)).sort((a,b)=>a.id-b.id);
+  if(!abilityReady(g,'missiles')||!targets.length||g.projectiles.length+targets.length>LIMITS.projectiles) return false;
+  spendAbility(g,'missiles');
+  for(let i=0;i<targets.length;i++) {
+    const t=targets[i];
+    projectile(g,'missile','player',(i-(targets.length-1)/2)*0.14,0,t.x,t.z,26,
+      65+skillLevel(g,'missileDamage')*20,{targetId:t.id,y:1.2,vx:0,vz:0,vy:20,phase:'ascent',age:0,ttl:10,radius:0.3});
   }
   effect(g,'missile-launch',0,0,targets[0].x,targets[0].z,0.4);return true;
 }
-function missileBlast(g,p,x,z) {
-  for(const e of g.enemies) if(e.hp>0&&!e.submerged&&Math.hypot(e.x-x,e.z-z)<=2.8+radius(e)) e.hp-=p.damage;
+function areaDamage(g,x,z,damage,reach) {
+  for(const e of g.enemies) if(e.hp>0&&!e.submerged&&Math.hypot(e.x-x,e.z-z)<=reach+radius(e)) e.hp-=damage;
   effect(g,'explosion',x,z,x,z,0.6);
 }
-
-export function upgradeCost(g,id) {
-  return has(UPGRADES,id)&&g.upgrades[id]<50?Math.ceil(UPGRADES[id].baseCost*1.28**g.upgrades[id]):Infinity;
+function updateMissile(g,p,dt) {
+  p.ttl-=dt;p.age+=dt;
+  const target=g.enemies.find(e=>e.id===p.targetId&&e.hp>0&&!e.submerged);
+  if(!target&&p.phase!=='divert') {p.phase='divert';p.targetId=null;p.ttl=Math.min(p.ttl,0.5);p.vy=12;}
+  if(p.phase==='divert') {p.y+=p.vy*dt;p.x+=8*dt;return p.ttl>0;}
+  p.tx=target.x;p.tz=target.z;
+  if(p.phase==='ascent') {
+    p.y+=p.vy*dt;
+    if(p.age>=0.7) p.phase='dive';else return p.ttl>0;
+  }
+  const dx=p.tx-p.x,dz=p.tz-p.z,dy=0.5-p.y,d=Math.hypot(dx,dy,dz);
+  p.vx=dx/d*p.speed;p.vz=dz/d*p.speed;p.vy=dy/d*p.speed;
+  if(d<=p.speed*dt+0.5) {areaDamage(g,p.tx,p.tz,p.damage,2.8);return false;}
+  p.x+=p.vx*dt;p.z+=p.vz*dt;p.y=Math.max(0,p.y+p.vy*dt);return p.ttl>0;
 }
-export function buyUpgrade(g,id) {
-  const cost=upgradeCost(g,id);
-  if(g.phase==='defeat'||!Number.isFinite(cost)||g.scrap<cost) return false;
-  g.scrap-=cost;g.upgrades[id]++;
-  if(id==='hull') g.hp=Math.min(stats(g).maxHp,g.hp+30);
-  if(id==='reactor') g.energy=Math.min(stats(g).maxEnergy,g.energy+20);
+export function launchAirstrike(g) {
+  const focus=g.enemies.filter(e=>e.hp>0&&!e.submerged).sort((a,b)=>b.hp-a.hp||a.id-b.id)[0];
+  if(!abilityReady(g,'airstrike')||!focus||g.projectiles.length+12>LIMITS.projectiles) return false;
+  spendAbility(g,'airstrike');
+  projectile(g,'aircraft','player',focus.x-36,focus.z,focus.x+36,focus.z,20,
+    95+skillLevel(g,'airstrikeDamage')*25,{y:14,vy:0,phase:'pass',ttl:3.6,dropTimer:0,focusX:focus.x});
+  effect(g,'aircraft',focus.x-36,focus.z,focus.x+36,focus.z,3.6);return true;
+}
+function updateAircraft(g,p,dt) {
+  p.ttl-=dt;p.vx=p.speed;p.vz=0;p.x+=p.vx*dt;p.dropTimer-=dt;
+  if(Math.abs(p.x-p.focusX)<=12&&p.dropTimer<=0) {
+    projectile(g,'bomb','player',p.x,p.z,p.x,p.z,0,p.damage,{y:p.y,vy:0,phase:'fall',ttl:3,radius:4});
+    effect(g,'bomb',p.x,p.z,p.x,p.z,0.3);p.dropTimer=0.25;
+  }
+  return p.ttl>0;
+}
+function updateBomb(g,p,dt) {
+  p.ttl-=dt;p.vy-=18*dt;p.y+=p.vy*dt;
+  if(p.y<=0) {p.y=0;areaDamage(g,p.x,p.z,p.damage,p.radius);return false;}
+  return p.ttl>0;
+}
+
+export function skillLevel(g,id) {
+  return has(SKILLS,id)&&Number.isSafeInteger(g.skills?.[id])?Math.max(0,Math.min(SKILLS[id].max,g.skills[id])):0;
+}
+export function skillCost(g,id) {
+  return has(SKILLS,id)&&skillLevel(g,id)<SKILLS[id].max?Math.ceil(SKILLS[id].cost*1.35**skillLevel(g,id)):Infinity;
+}
+const shopping=g=>['ready','intermission','upgrade'].includes(g.phase)&&g.hp>0;
+const weaponOwned=(g,id)=>id==='cannon'||skillLevel(g,id==='tesla'?'unlockTesla':'unlockRail')>0;
+function syncWeapons(g) {g.unlocked=Object.keys(WEAPONS).filter(id=>weaponOwned(g,id));}
+export function buySkill(g,id) {
+  const cost=skillCost(g,id);
+  if(!shopping(g)||!Number.isFinite(cost)||g.cash<cost||!SKILLS[id].parents.every(p=>skillLevel(g,p)>0)) return false;
+  g.cash-=cost;g.skills[id]=skillLevel(g,id)+1;syncWeapons(g);
+  if(id==='towerHull') g.hp=Math.min(stats(g).maxHp,g.hp+30);
+  if(id==='towerReactor') g.energy=Math.min(stats(g).maxEnergy,g.energy+20);
   return true;
 }
-export function weaponUpgradeCost(g,weapon,id) {
-  return has(WEAPON_UPGRADES,weapon)&&has(WEAPON_UPGRADES[weapon],id)&&g.weaponUpgrades[weapon][id]<50
-    ?Math.ceil(WEAPON_UPGRADES[weapon][id].baseCost*1.25**g.weaponUpgrades[weapon][id]):Infinity;
-}
-export function buyWeaponUpgrade(g,weapon,id) {
-  const cost=weaponUpgradeCost(g,weapon,id);
-  if(g.phase==='defeat'||!Number.isFinite(cost)||g.scrap<cost||!g.unlocked.includes(weapon)) return false;
-  const before=stats(g,weapon);g.scrap-=cost;g.weaponUpgrades[weapon][id]++;
-  if(weapon===g.weapon&&id==='magazine') g.ammo+=stats(g,weapon).maxAmmo-before.maxAmmo;
-  return true;
-}
-
-function unlockWeapons(g) {
-  g.unlocked=Object.keys(WEAPONS).filter(id=>id==='cannon'||g.wave>=WEAPONS[id].unlockWave);
+const abilityUnlock={emp:'unlockEmp',missiles:'unlockMissiles',airstrike:'unlockAirstrike'};
+const slots=g=>1+skillLevel(g,'slot2')+skillLevel(g,'slot3');
+export function equipAbility(g,id) {
+  if(!shopping(g)||!has(ABILITIES,id)||!skillLevel(g,abilityUnlock[id])) return false;
+  if(g.loadout.includes(id)) {g.loadout=g.loadout.filter(a=>a!==id);return true;}
+  if(g.loadout.length>=slots(g)) return false;
+  g.loadout.push(id);return true;
 }
 export function setWeapon(g,id) {
-  if(!has(WEAPONS,id)||g.phase==='defeat'||g.charge) return false;
-  unlockWeapons(g);
-  if(!g.unlocked.includes(id)) return false;
-  g.weapon=id;g.ammo=Math.min(g.ammo,stats(g).maxAmmo);return true;
+  if(!has(WEAPONS,id)||g.phase==='defeat'||g.charge||!weaponOwned(g,id)) return false;
+  syncWeapons(g);g.weapon=id;return true;
 }
 export function setPriority(g,id) {
   if(g.phase==='defeat'||!['nearest','strongest','weakest'].includes(id)) return false;
@@ -311,57 +403,62 @@ function spawn(g) {
   g.spawnRemaining--;
 }
 function completeWave(g) {
-  if(g.phase!=='combat'||g.hp<=0||g.spawnRemaining>0||g.enemies.length||g.projectiles.some(p=>p.owner==='enemy')) return;
-  g.phase=g.wave%10===0?'upgrade':'intermission';g.spawnTimer=2;
-  g.bestWave=Math.max(g.bestWave,g.wave);g.scrap=Math.min(1e9,g.scrap+12+g.wave*3);addScore(g,100*g.wave);
-  const s=stats(g);g.hp=Math.min(s.maxHp,g.hp+s.maxHp*0.12);g.energy=Math.min(s.maxEnergy,g.energy+20);
-  g.charge=null;delete g._chargeManual;g.pendingManual=null;
-  g.notice=g.phase==='upgrade'?'Migliora e continua.':`Ondata ${g.wave} completata.`;
+  if(g.phase!=='combat'||g.hp<=0||g.spawnRemaining>0||g.enemies.length||g.projectiles.some(p=>p.owner==='enemy'||p.kind==='aircraft'||p.kind==='bomb')) return;
+  g.phase='upgrade';g.autoWave=false;g.highWave=Math.max(g.highWave,g.wave);
+  if(g.waveKills>0) earn(g,12+g.wave*3);
+  const s=stats(g);if(g.waveKills>0) g.hp=Math.min(s.maxHp,g.hp+s.maxHp*0.12);g.energy=Math.min(s.maxEnergy,g.energy+20);
+  g.charge=null;delete g._chargeManual;g.pendingManual=null;g.projectiles=[];g.aim=null;
+  g.notice=`Ondata ${g.wave} completata. Migliora e continua.`;
 }
-
 function defeat(g) {
-  g.phase='defeat';g.hp=0;g.scrap=0;g.energy=0;g.ammo=0;
-  g.upgrades={hull:0,reactor:0,salvage:0};g.weaponUpgrades=createGame(0).weaponUpgrades;
-  g.weapon='cannon';g.unlocked=['cannon'];g.enemies=[];g.projectiles=[];g.events=[];
-  g.charge=null;delete g._chargeManual;g.aim=null;g.pendingManual=null;g.spawnRemaining=0;
-  g.highScore=Math.max(g.highScore,g.score);g.notice='Stazione perduta.';
+  g.phase='defeat';g.hp=0;g.cash=0;g.energy=0;
+  g.skills=createGame(0).skills;g.loadout=[];g.weapon='cannon';g.unlocked=['cannon'];
+  g.enemies=[];g.projectiles=[];g.events=[];g.charge=null;delete g._chargeManual;
+  g.aim=null;g.pendingManual=null;g.spawnRemaining=0;g.autoWave=false;
+  g.bestEarnings=Math.max(g.bestEarnings,g.earnedMoney);g.notice='Stazione perduta.';
 }
 export function restartGame(g) {
-  const highScore=Math.max(g.highScore,g.score),bestWave=g.bestWave,stamp=g.lastSavedAt;
+  const bestEarnings=Math.max(g.bestEarnings,g.earnedMoney),highWave=g.highWave,stamp=g.lastSavedAt;
   for(const key of Object.keys(g)) delete g[key];
-  Object.assign(g,createGame(stamp),{highScore,bestWave});
+  Object.assign(g,createGame(stamp),{bestEarnings,highWave});
 }
 
-function spawnSeaEvent(g) {
-  if(g.events.length>=LIMITS.events) return;
-  const types=['repair','ammo','salvage','supply'];
-  const type=g.wave===2?'supply':types[Math.floor(g.wave/3)%types.length];
-  const angle=g.wave*1.71,r=8+g.wave%4;
-  g.events.push({id:g.nextId++,type,x:Math.cos(angle)*r,z:Math.sin(angle)*r,ttl:28,value:40+g.wave*2});
-  effect(g,'event',Math.cos(angle)*r,Math.sin(angle)*r,Math.cos(angle)*r,Math.sin(angle)*r,0.8);
+function startEnvironment(g) {
+  const type=g.wave===1?'calm':['fog','current','storm'][(g.wave-2)%3];
+  g.environment={type,timeLeft:type==='calm'?0:18,duration:type==='calm'?0:18,
+    dx:type==='current'?0.7:0,dz:type==='current'?0.35:0};
 }
-export function collectEvent(g,id) {
-  if(g.phase!=='combat'||g.hp<=0||!Number.isSafeInteger(id)) return false;
-  const index=g.events.findIndex(e=>e.id===id&&e.ttl>0);
-  if(index<0) return false;
-  const event=g.events[index],s=stats(g);
-  if(!['supply','repair','ammo','salvage'].includes(event.type)||!Number.isFinite(event.value)||event.value<=0) return false;
-  if(event.type==='repair') g.hp=Math.min(s.maxHp,g.hp+event.value);
-  else if(event.type==='ammo') {g.ammo=s.maxAmmo;g.reloadTimer=0;}
-  else if(event.type==='salvage') g.scrap=Math.min(1e9,g.scrap+event.value);
-  else {g.energy=Math.min(s.maxEnergy,g.energy+event.value);g.ammo=Math.min(s.maxAmmo,g.ammo+12);}
-  g.events.splice(index,1);addScore(g,25);
-  effect(g,'event',event.x,event.z,event.x,event.z,0.6);
-  return true;
+function updateEnvironment(g,dt) {
+  const env=g.environment;if(env.type==='calm') return;
+  const elapsed=env.duration-env.timeLeft;
+  env.timeLeft=Math.max(0,env.timeLeft-dt);
+  if(env.type==='storm'&&Math.floor((elapsed+dt+1e-8)/6)>Math.floor((elapsed+1e-8)/6)) {
+    g.energy=Math.max(0,g.energy-8);effect(g,'lightning',0,0,0,0,0.6);
+  }
+  if(env.timeLeft<1e-9) g.environment={type:'calm',timeLeft:0,duration:0,dx:0,dz:0};
 }
 
-const SAVE_FIELDS=['version','phase','wave','bestWave','highScore','score','scrap','hp','energy','ammo',
-  'reloadTimer','kills','weapon','priority','upgrades','weaponUpgrades','lastSavedAt'];
+const SAVE_FIELDS=['version','phase','wave','highWave','bestEarnings','cash','earnedMoney','hp','energy',
+  'heat','overheated','overheatTimer','cooldown','pulseCooldown','missileCooldown','airstrikeCooldown',
+  'kills','weapon','priority','skills','loadout','lastSavedAt'];
+function snapshot(g) {
+  const data={};for(const key of SAVE_FIELDS) data[key]=g[key];
+  data.skills={...g.skills};data.loadout=[...g.loadout];return data;
+}
 export function serializeGame(g,now=Date.now()) {
   g.lastSavedAt=bounded(now,0,8.64e15,true);
-  const data={};for(const key of SAVE_FIELDS) data[key]=g[key];
+  const data=g.phase==='combat'&&g._checkpoint?structuredClone(g._checkpoint):snapshot(g);
+  if(g.phase==='combat') {
+    if(!g._checkpoint) data.wave=Math.max(0,g.wave-1);
+    data.phase='intermission';
+  }
+  data.highWave=g.highWave;data.bestEarnings=Math.max(g.bestEarnings,g.earnedMoney);data.lastSavedAt=g.lastSavedAt;
   return JSON.stringify(data);
 }
+// Strict numeric validation: no strings, fractional levels, nonfinite values or capped cheats.
+const valid=(v,fallback,max,integer=false)=>typeof v==='number'&&Number.isFinite(v)&&v>=0&&v<=max&&
+  (!integer||Number.isSafeInteger(v))?v:fallback;
+const record=o=>o!==null&&typeof o==='object'&&!Array.isArray(o);
 export function loadGame(json,now=Date.now()) {
   const g=createGame(now);let raw;
   try {
@@ -369,33 +466,43 @@ export function loadGame(json,now=Date.now()) {
     if(typeof text!=='string'||text.length>200000) return g;
     raw=JSON.parse(text);
   } catch {return g;}
-  if(!raw||typeof raw!=='object'||Array.isArray(raw)||![1,2].includes(raw.version)) return g;
-  g.bestWave=bounded(raw.bestWave,0,1000,true);
-  g.highScore=bounded(raw.highScore,0,1e9,true);
-  if(raw.version===1) return g;
-  g.score=bounded(raw.score,0,1e9,true);g.highScore=Math.max(g.highScore,g.score);
-  g.wave=bounded(raw.wave,0,1000,true);
-  if(raw.phase==='combat') g.wave=Math.max(0,g.wave-1);
-  g.wave=Math.min(g.wave,g.bestWave);
-  g.scrap=bounded(raw.scrap,60,1e9);g.kills=bounded(raw.kills,0,1e9,true);
-  if(raw.upgrades&&typeof raw.upgrades==='object'&&!Array.isArray(raw.upgrades)) {
-    for(const id of Object.keys(UPGRADES)) g.upgrades[id]=bounded(raw.upgrades[id],0,50,true);
+  if(!record(raw)||![1,2,3].includes(raw.version)) return g;
+  if(raw.version!==3) {
+    g.highWave=valid(raw.highWave,valid(raw.bestWave,0,1000,true),1000,true);
+    g.bestEarnings=valid(raw.bestEarnings,valid(raw.highScore,0,1e9,true),1e9,true);
+    return g;
   }
-  if(raw.weaponUpgrades&&typeof raw.weaponUpgrades==='object'&&!Array.isArray(raw.weaponUpgrades)) {
-    for(const weapon of Object.keys(WEAPONS)) {
-      const tree=raw.weaponUpgrades[weapon];
-      if(tree&&typeof tree==='object'&&!Array.isArray(tree)) for(const id of Object.keys(WEAPON_UPGRADES[weapon]))
-        g.weaponUpgrades[weapon][id]=bounded(tree[id],0,50,true);
+  g.highWave=valid(raw.highWave,0,1000,true);g.bestEarnings=valid(raw.bestEarnings,0,1e9,true);
+  g.wave=valid(raw.wave,0,1000,true);
+  if(raw.phase==='combat') g.wave=Math.max(0,g.wave-1);
+  g.wave=Math.min(g.wave,g.highWave);
+  g.cash=valid(raw.cash,60,1e9);g.earnedMoney=valid(raw.earnedMoney,0,1e9,true);
+  g.bestEarnings=Math.max(g.bestEarnings,g.earnedMoney);g.kills=valid(raw.kills,0,1e9,true);
+  if(record(raw.skills)) {
+    for(const id of Object.keys(SKILLS)) g.skills[id]=valid(raw.skills[id],0,SKILLS[id].max,true);
+    // Repeated pruning handles parents in any order without trusting the saved unlock cache.
+    for(let i=0;i<Object.keys(SKILLS).length;i++) {
+      let changed=false;
+      for(const [id,s] of Object.entries(SKILLS)) if(g.skills[id]&&!s.parents.every(p=>g.skills[p]>0)) {g.skills[id]=0;changed=true;}
+      if(!changed) break;
     }
   }
-  unlockWeapons(g);
-  if(g.unlocked.includes(raw.weapon)) g.weapon=raw.weapon;
+  syncWeapons(g);
+  if(has(WEAPONS,raw.weapon)&&weaponOwned(g,raw.weapon)) g.weapon=raw.weapon;
   if(['nearest','strongest','weakest'].includes(raw.priority)) g.priority=raw.priority;
+  if(Array.isArray(raw.loadout)) g.loadout=[...new Set(raw.loadout.filter(id=>has(ABILITIES,id)&&skillLevel(g,abilityUnlock[id])>0))].slice(0,slots(g));
   const s=stats(g);
-  g.hp=bounded(raw.hp,s.maxHp,s.maxHp);g.energy=bounded(raw.energy,s.maxEnergy,s.maxEnergy);
-  g.ammo=bounded(raw.ammo,s.maxAmmo,s.maxAmmo,true);g.reloadTimer=bounded(raw.reloadTimer,0,s.reloadTime);
-  g.phase=raw.phase==='upgrade'&&g.wave>0&&g.wave%10===0?'upgrade':g.wave>0?'intermission':'ready';
-  g.autoWave=false;g.spawnTimer=2;
+  g.hp=valid(raw.hp,s.maxHp,s.maxHp);g.energy=valid(raw.energy,s.maxEnergy,s.maxEnergy);
+  g.cooldown=valid(raw.cooldown,0,2);
+  for(const [id,a] of Object.entries(ABILITIES)) g[abilityClock[id]]=valid(raw[abilityClock[id]],0,a.cooldown);
+  g.heat=valid(raw.heat,0,s.heatCapacity);
+  g.overheated=raw.overheated===true;
+  if(g.overheated) {
+    g.overheatTimer=valid(raw.overheatTimer,s.overheatRecovery,s.overheatRecovery);
+    if(g.overheatTimer<=0) g.overheatTimer=s.overheatRecovery;
+  } else if(g.heat>=s.heatCapacity) {g.overheated=true;g.overheatTimer=s.overheatRecovery;}
+  g.lastSavedAt=valid(raw.lastSavedAt,g.lastSavedAt,8.64e15,true);
+  g.phase='intermission';g.autoWave=false;
   if(raw.phase==='defeat'||g.hp<=0) defeat(g);
   return g;
 }

@@ -1,0 +1,35 @@
+/* Hallmark · tokens · v2.0.0 · existing naval identity, role-named colors and one body family */
+:root {
+  color-scheme: dark;
+  --font-body:
+    "Bahnschrift", "DIN Alternate", "Arial Narrow", Arial, sans-serif;
+  --ink: #eef5ef;
+  --subtle: #c5d9d4;
+  --muted: #aac2c0;
+  --sea: #082c3a;
+  --panel: #0b2831f5;
+  --workshop: #0b222bf5;
+  --tree-bg: #0a1d25e8;
+  --edge: #668c8f;
+  --amber: #ffd078;
+  --amber-hover: #ffdf9b;
+  --accent-ink: #172a2b;
+  --cyan: #82ece7;
+  --danger: #ff9b84;
+  --danger-edge: #b86d5f;
+  --healthy: #a8dbad;
+  --hover: #1c3e45;
+  --selected: #3b3b2b;
+  --node-bg: #102f38;
+  --node-edge: #6d9290;
+  --disabled-ink: #8babae;
+  --disabled-bg: #102c35;
+  --disabled-edge: #49656b;
+  --meter-bg: #08202bef;
+  --meter-edge: #95bbb380;
+  --link-locked: #638386;
+  --link-owned: #a8c7ab;
+  --shadow: #02151def;
+  --scrim: #00121e66;
+  --clear: transparent;
+}

@@ -1,4 +1,47 @@
-# v0.2 Meshy fleet — delivered assets and integration contract
+# v0.3 Meshy assets — replacement Tesla and airstrike bomber
+
+## v0.3 delivered artifacts
+
+Two new `meshy-6-lite` assets were generated with exactly **2 preview + 2 PBR refine jobs**. All four exact task readbacks returned `SUCCEEDED`. Actual provider `consumed_credits`: **5 + 10 per asset, 30 total**, within the separate **40-credit** batch cap. No duplicate submissions, paid remesh calls or extra candidate jobs were made. Current official Text-to-3D and pricing documentation was fetched before submission.
+
+| Asset | Relative file under `public/` | Triangles | Bytes | Meshes/materials | Credits |
+|---|---|---:|---:|---|---:|
+| Replacement dual-Tesla | `assets/fleet/tesla.glb` | 10,159 | 1,327,392 | 1 / 1 | 15 |
+| Airstrike bomber | `assets/fleet/bomber.glb` | 10,468 | 1,371,456 | 1 / 1 | 15 |
+
+| Asset | Preview task | PBR refine task |
+|---|---|---|
+| Tesla | `01a17f06-346c-70db-9bd1-abeed753e97e` | `01a17f07-4adc-74ac-851b-a0cb2a089cea` |
+| Bomber | `01a17f06-346d-76e4-a747-efba9cb319cf` | `01a17f06-f220-704b-8fdb-b48a86aa7780` |
+
+SHA-256:
+- Tesla: `2ddc4d571a584490d5bbfb6c260f85eb962a0db5590413e12b263a0948ed866a`
+- Bomber: `73e2dc183708b0546bfbfdafa0f6466849f23705d6e683b30ece99531566235a`
+
+`manifest.json` now contains **9 active GLBs**, totaling **45,334 triangles / 7,179,288 bytes**. Lifetime generation spending is **150 credits / 20 jobs**, including the superseded v0.2 Tesla; active asset provenance accounts for135 credits. The original160 authorization and new40 cap are distinct batch records, not a new generation allowance. Full prior Tesla provenance/hash/parameters are preserved in `assetHistory.tesla`; its old provider thumbnails are preserved as `previews/tesla-v02*.png`.
+
+### Visual acceptance and limitations
+
+- **Tesla:** clearly separated twin upright copper coils, blue-cyan glossy electrode caps and compact dark metal circular pedestal. No long cannon barrel. Provider produced a short central cable/socket rather than the fully requested horizontal discharge fork; caps are not emissive glass. The integral pedestal belongs to the rigid rotating head, not a separate sea platform. Game-owned arcs/glow can supply the electrical effect; that integration is not claimed here.
+- **Bomber:** readable fuselage/cockpit, twin engine nacelles, wings and orange tail accents. The raw provider airframe had asymmetric crossed-looking wings. The coherent half was clipped at its centerline and mirrored with preserved UVs/materials, producing a symmetric **swept-wing/canard, jet-like strike aircraft**, not an exact conventional straight-wing propeller patrol bomber. Beige/orange dominates; olive green is limited mainly to nacelles/panels. Obvious generated pseudo-letter decals were locally removed from the base texture; incidental texture noise may remain.
+- Both are **+Y up, +Z forward**, baked into positions/normals. Bomber originally faced-X. Do not apply an extra-X correction. Normalize by manifest bounds; units and origin are arbitrary. These are rigid single meshes without articulated parts or animation rigs.
+- Requested target was10,000 triangles each; actual remeshed counts vary slightly. Bomber symmetry cleanup yielded10,468 triangles. Three embedded provider PBR images per model were reduced from2K to1024px JPEG quality86. No external buffer/image URI, compressed geometry decoder or credential is required at runtime.
+
+### Verification performed for these two files
+
+1. Parsed actual shipping GLB headers/chunks: valid GLB2, exact declared byte length, valid buffer-view ranges, finite decoded positions and no required compression extensions.
+2. Independently counted decoded triangles, meshes/materials, bounds, sizes and SHA-256; details are recorded in the manifest. Native loader bounds agree within1e-6 float32 packing tolerance.
+3. Loaded both shipping files through the project's installed `three/addons/loaders/GLTFLoader.js` in headless Chromium: **2 successful models, zero loader errors**,1 mesh/material and4 texture slots each (metalness/roughness share the packed image).
+4. Visually inspected provider thumbnails **and actual native textured meshes from perspective, top and front views**, including the corrected bomber silhouette. Provider pictures are `previews/{tesla,bomber}.png` and `*-geometry.png`; **shipping-mesh** perspective pictures are `previews/{tesla,bomber}-native.png`. Provider pictures intentionally still show the unprocessed generation.
+
+Secret-free generation scripts, exact receipts, originals, native multi-view contact sheets and detailed verification are in `/home/cammo/.hermes/cache/scratch/meshy-v03/`. Durable provenance/receipts are also in the project manifest. No signed download URL or API key was published. The existing `verification.json` and `native-contact.png` refer to the historical v0.2 batch, not a new9-model verification.
+
+**Not claimed:** app-side bomber unlock/airstrike wiring, final gameplay camera readability, pivot placement in the game, worst-case FPS, mobile performance, collision, final offline build or all-nine-model app verification. Parent owns integration/testing. No source/tests were edited, and no commit/push was made for this asset task.
+
+## Historical v0.2 delivery report (superseded Tesla measurements)
+
+The report below describes the original eight-asset batch only. Its Tesla file and totals are historical; use the v0.3 section and current manifest for shipping files.
+
 
 ## Delivered and measured
 

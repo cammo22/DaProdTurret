@@ -1,86 +1,793 @@
-:root{color-scheme:dark;--ink:#eef5ef;--muted:#9bb9bc;--panel:#0a2028ed;--edge:#608b8b70;--amber:#ffd078;--cyan:#74e6e2;--danger:#ff8873;font-family:'Bahnschrift','DIN Alternate','Arial Narrow',Arial,sans-serif;background:#082c3a;color:var(--ink);font-synthesis:none}
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
-body{position:fixed;inset:0;font-size:13px}
-button,input{font:inherit}
-button{color:inherit;cursor:pointer;min-width:44px;min-height:44px;border:1px solid var(--edge);border-radius:5px;background:var(--panel);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-button:hover:not(:disabled){border-color:var(--amber);background:#193c44}
-button:active:not(:disabled){translate:0 1px}
-button:disabled{opacity:.4;cursor:default}
-button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-h1,h2,p{margin:0}[hidden]{display:none!important}
-#app{position:fixed;inset:0;width:100%;height:100dvh;overflow:hidden;isolation:isolate}
-#viewport{position:absolute;inset:0;touch-action:none}
-#viewport canvas{display:block;width:100%;height:100%;touch-action:none}
-.score-hud{position:absolute;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));display:flex;gap:18px;pointer-events:none;text-shadow:0 2px 5px #001318}
-.score-hud span{display:flex;flex-direction:column;gap:2px;font-size:9px;letter-spacing:1.3px;color:#c1d6d3}
-.score-hud b{font-size:23px;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);letter-spacing:0}
-.utility{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));display:flex;gap:5px}
-.utility button{width:44px;font-size:22px;background:#09232bc9}
-.utility #mute[aria-pressed=false]{color:var(--muted);text-decoration:line-through}
-#boss-health{position:absolute;left:50%;top:max(18px,env(safe-area-inset-top));transform:translateX(-50%);width:min(32vw,440px);display:grid;grid-template-columns:auto 1fr;gap:5px 9px;align-items:center;font-size:10px;font-weight:bold;letter-spacing:1px;text-shadow:0 1px 3px #07171e}
-#boss-health>div{height:9px;background:#291b20;box-shadow:0 0 0 1px #f1957666;border-radius:1px;overflow:hidden}
-#boss-bar{display:block;height:100%;background:var(--danger);width:100%}
-#boss-value{grid-column:2;font-size:9px;letter-spacing:0;font-variant-numeric:tabular-nums;text-align:right}
-#tower-hud{position:absolute;left:50%;top:60%;width:158px;transform:translate(-50%,0);pointer-events:none;filter:drop-shadow(0 2px 4px #00141e)}
-.world-meter{height:18px;display:grid;grid-template-columns:30px 1fr 42px;gap:5px;align-items:center;font-size:9px;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #00131c}
-.world-meter>div{height:5px;background:#07202bcc;outline:1px solid #bedbcd3b;overflow:hidden;border-radius:1px}
-.world-meter i{display:block;height:100%;width:100%;background:#a4d49e}
-.world-meter.energy i{background:var(--cyan)}.world-meter.ammo i{background:var(--amber)}
-.world-meter b{text-align:right;font-size:9px;font-weight:600}.world-meter span{font-size:8px}
-.world-meter.ammo.reloading i{background:#d9edf0}#tower-hud.critical .hp i{background:var(--danger)}
-.combat-controls{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:16px;max-width:calc(100% - 20px)}
-.control-group{display:flex;gap:5px}
-.combat-controls button{position:relative;width:64px;height:70px;padding:5px 3px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;box-shadow:0 3px 12px #00131c50}
-.combat-controls strong{font-size:23px;font-weight:400;line-height:25px;color:#e5efdc}
-.combat-controls span{font-size:10px;line-height:12px}
-.combat-controls small{font-size:9px;line-height:10px;color:var(--muted);font-variant-numeric:tabular-nums}
-.combat-controls button[aria-pressed=true]{border-color:var(--amber);background:#3e3a25e8;box-shadow:inset 0 -2px var(--amber)}
-.combat-controls button[aria-pressed=true] strong{color:var(--amber)}
-.wave-button{position:absolute;left:50%;bottom:105px;transform:translateX(-50%);padding:0 16px;font-weight:bold;color:var(--amber)}
-#paused-banner{position:absolute;inset:0;display:grid;place-items:center;background:#00121e33;pointer-events:none}
-#paused-banner button{pointer-events:auto;padding:0 24px}
-.start-screen{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px;min-width:245px;text-align:center}
-.start-screen h1{font-size:clamp(23px,5vw,36px);font-weight:750;letter-spacing:-1px;text-shadow:0 3px 14px #00131c}
-.start-screen h2{font-size:23px;text-shadow:0 2px 5px #00131c}
-.start-screen p{white-space:nowrap;text-shadow:0 1px 5px #00131c}
-.primary{background:#eac074;color:#1b2424;border-color:#ffdfa0;padding:0 26px;font-weight:bold;box-shadow:0 4px 18px #00131c55}
-.primary:hover:not(:disabled){background:#ffe2a0;color:#102128}
-.start-screen~.combat-controls{z-index:2}
-#upgrade-dock{position:absolute;z-index:5;left:50%;top:40%;transform:translate(-50%,-50%);width:358px;max-width:calc(100% - 24px);max-height:calc(100dvh - 116px);overflow:hidden;border:1px solid #b8d5c88c;border-radius:7px;background:#0a2028f8;box-shadow:0 14px 55px #00111f99;display:flex;flex-direction:column;padding:0 12px 8px}
-#upgrade-dock header{display:flex;align-items:center;gap:9px;min-height:48px;flex:none}
-#upgrade-dock h2{font-size:14px;flex:1}
-#upgrade-dock header>span{color:var(--amber);font-size:12px;white-space:nowrap}
-#close-upgrades{font-size:24px;background:transparent;border:0;min-width:44px;width:44px;margin-right:-9px}
-#upgrade-tabs{display:flex;gap:3px;padding-bottom:7px;flex:none}
-#upgrade-tabs button{flex:1;min-width:0;min-height:44px;font-size:11px;background:#102c34}
-#upgrade-tabs button[aria-selected=true]{color:var(--amber);border-color:var(--amber)}
-#upgrade-list{display:grid;gap:3px;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
-.upgrade-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;border-top:1px solid #45676a55}
-.upgrade-row>span{display:flex;flex-direction:column;gap:3px;font-size:12px}
-.upgrade-row small{font-size:9px;color:var(--muted)}
-.upgrade-row button{min-width:78px;padding:0 9px;font-size:11px;color:var(--amber)}
-#upgrade-dock footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:7px;flex:none}
-#upgrade-dock footer label{display:flex;gap:6px;align-items:center;font-size:11px;min-height:44px;cursor:pointer}
-#auto-wave{accent-color:var(--amber);width:18px;height:18px}
-#continue-wave{padding:0 14px;color:var(--amber)}
-#event-targets{position:absolute;inset:0;pointer-events:none}
-.event-target{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;pointer-events:auto;border-color:#c5ecd16b;background:#0b3337cc;color:#d5ffd4;font-size:21px;box-shadow:0 0 15px #9fdaa433}
-#render-error{position:absolute;top:25%;left:50%;transform:translateX(-50%);width:min(350px,90%);padding:16px;background:var(--panel);border:1px solid var(--danger);font-size:12px;text-align:center}
-@media(max-width:600px){
-.score-hud{left:12px;top:max(14px,env(safe-area-inset-top));gap:13px}.score-hud b{font-size:20px}
-.utility{right:8px;gap:3px}.utility button{width:44px}.utility #fullscreen{display:none}
-.combat-controls{gap:9px;bottom:max(14px,env(safe-area-inset-bottom))}.combat-controls button{width:54px;height:65px}.control-group{gap:3px}
-#boss-health{top:max(73px,env(safe-area-inset-top));width:60vw;max-width:280px}#tower-hud{width:148px}.wave-button{bottom:92px}
-#upgrade-dock{width:350px;max-height:calc(100dvh - 108px)}
+/* Hallmark · v2.0.0 · shape: app screen · theme: existing naval palette · scope: app · genre: playful · screen: sea combat and prerequisite skill tree · nav: world controls · footer: weapon and ability loadout · redesign: full */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: V, retained the naval identity; replaced the flat upgrade list with actual dependency branches. */
+/* Hallmark · dropped ammo-, .ammo, score, scrap-, event-targets, auto-wave, pulse, missile, upgrade-list · the user replaces ammo/points/pickups/auto-waves and free ability controls with heat/cash/paid equipped abilities and a dependency tree. */
+/* Hallmark · reworded "Potenziamenti" to "Arsenale" · the player now purchases weapons and equips support in this game panel. */
+/* Hallmark · dismissed 25 · ready-screen has one short gameplay instruction, not running prose; 28ch keeps the instruction inside the mobile playing surface. */
+@import './tokens.css';
+* {
+  box-sizing: border-box;
 }
-@media(max-height:500px) and (min-width:601px){
-.score-hud{top:max(10px,env(safe-area-inset-top))}.score-hud span{font-size:8px}.score-hud b{font-size:19px}
-.utility{top:8px;right:max(10px,env(safe-area-inset-right))}
-.combat-controls{bottom:max(10px,env(safe-area-inset-bottom));gap:10px}.combat-controls button{height:58px;width:58px;gap:0}.combat-controls strong{font-size:21px;line-height:23px}.combat-controls span{font-size:9px}.combat-controls small{font-size:8px}
-.wave-button{left:calc(50% + 255px);bottom:14px;padding:0 12px}
-#upgrade-dock{width:342px;max-height:calc(100dvh - 79px);padding:0 10px 5px}#upgrade-dock header{min-height:44px}#upgrade-tabs{padding-bottom:2px}.upgrade-row{min-height:45px}#upgrade-dock footer{padding-top:2px}
-.start-screen{top:37%;gap:10px;padding:12px}.start-screen h1{font-size:26px}#tower-hud{width:144px}.world-meter{height:15px}#boss-health{top:14px;width:30vw}
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: clip;
+  overflow-y: clip;
+  overscroll-behavior: none;
 }
-@media(max-width:365px){.combat-controls{gap:6px}.combat-controls button{width:48px}.control-group{gap:2px}.score-hud{gap:10px}#upgrade-dock{padding-inline:8px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+body {
+  position: fixed;
+  inset: 0;
+  font: 16px/1.5 var(--font-body);
+  background: var(--sea);
+  color: var(--ink);
+  font-synthesis: none;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: var(--panel);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: var(--clear);
+  white-space: nowrap;
+}
+button:hover:not(:disabled) {
+  border-color: var(--amber);
+  background: var(--hover);
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+button:disabled {
+  color: var(--disabled-ink);
+  background: var(--disabled-bg);
+  border-color: var(--disabled-edge);
+  cursor: not-allowed;
+}
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1,
+h2,
+h3 {
+  min-width: 0;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+[hidden] {
+  display: none !important;
+}
+::selection {
+  color: var(--accent-ink);
+  background: var(--amber);
+}
+#app {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: clip;
+  isolation: isolate;
+}
+#viewport {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  outline-offset: -4px;
+}
+#viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.run-hud {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left));
+  top: max(16px, env(safe-area-inset-top));
+  display: flex;
+  gap: 24px;
+  pointer-events: none;
+  text-shadow: 0 2px 4px var(--shadow);
+}
+.run-hud span {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--subtle);
+}
+.run-hud b {
+  font-size: 24px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+#weather-status {
+  position: absolute;
+  left: max(16px, env(safe-area-inset-left));
+  top: max(80px, calc(env(safe-area-inset-top) + 64px));
+  max-width: calc(100% - 32px);
+  font-size: 12px;
+  color: var(--ink);
+  padding: 4px 8px;
+  background: var(--panel);
+  pointer-events: none;
+}
+.utility {
+  position: absolute;
+  right: max(16px, env(safe-area-inset-right));
+  top: max(16px, env(safe-area-inset-top));
+  display: flex;
+  gap: 4px;
+}
+.utility button {
+  width: 44px;
+  font-size: 20px;
+}
+.utility #install-button {
+  width: auto;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+.utility #mute[aria-pressed="false"] {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+#boss-health {
+  position: absolute;
+  left: 50%;
+  top: max(20px, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  width: min(30%, 400px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 8px;
+  align-items: center;
+  font-size: 12px;
+  text-shadow: 0 1px 4px var(--shadow);
+  pointer-events: none;
+}
+#boss-health > div {
+  height: 8px;
+  background: var(--meter-bg);
+  outline: 1px solid var(--danger-edge);
+  border-radius: 2px;
+  overflow: clip;
+}
+#boss-bar {
+  display: block;
+  height: 100%;
+  background: var(--danger);
+  transform-origin: left center;
+}
+#boss-value {
+  grid-column: 2;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+#tower-hud {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  width: 210px;
+  transform: translate(-50%, 0);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px var(--shadow));
+}
+.world-meter {
+  height: 20px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 36px;
+  gap: 4px;
+  align-items: center;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px var(--shadow);
+}
+.world-meter > div {
+  height: 5px;
+  background: var(--meter-bg);
+  outline: 1px solid var(--meter-edge);
+  overflow: clip;
+  border-radius: 1px;
+}
+.world-meter i {
+  display: block;
+  height: 100%;
+  background: var(--healthy);
+  transform-origin: left center;
+}
+.world-meter.energy i {
+  background: var(--cyan);
+}
+.world-meter.heat i {
+  background: var(--amber);
+}
+.world-meter b {
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+}
+.world-meter span {
+  font-size: 11px;
+}
+#tower-hud.critical .hp i,
+#tower-hud.overheated .heat i {
+  background: var(--danger);
+}
+#overheat-status {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: var(--danger);
+  white-space: nowrap;
+}
+.combat-controls {
+  position: absolute;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  max-width: calc(100% - 24px);
+  align-items: stretch;
+}
+.control-group {
+  display: flex;
+  gap: 4px;
+}
+.control-group:empty {
+  display: none;
+}
+.combat-controls button {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  padding: 8px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+  font-size: 12px;
+}
+.combat-controls svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  margin-bottom: 4px;
+}
+.combat-controls small {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.combat-controls button[aria-pressed="true"] {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: var(--selected);
+  box-shadow: inset 0 -2px var(--amber);
+}
+.combat-controls #open-upgrades {
+  width: auto;
+  min-width: 80px;
+  padding-inline: 12px;
+}
+.wave-button {
+  position: absolute;
+  left: 50%;
+  bottom: 108px;
+  transform: translateX(-50%);
+  padding: 0 20px;
+  color: var(--amber);
+}
+.wave-button:active:not(:disabled) {
+  transform: translate(-50%, 1px);
+}
+#paused-banner {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--scrim);
+  pointer-events: none;
+}
+#paused-banner button {
+  pointer-events: auto;
+  padding-inline: 24px;
+}
+.start-screen {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  min-width: 280px;
+  max-width: calc(100% - 24px);
+  text-align: center;
+  text-shadow: 0 2px 6px var(--shadow);
+}
+.start-screen h1 {
+  font-size: 36px;
+  line-height: 1.1;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+}
+.start-screen h2 {
+  font-size: 24px;
+  line-height: 1.2;
+}
+.start-screen p {
+  font-size: 14px;
+  max-width: 28ch;
+}
+.primary {
+  background: var(--amber);
+  color: var(--accent-ink);
+  border-color: var(--amber);
+  padding-inline: 24px;
+  font-weight: 650;
+  text-shadow: none;
+}
+.primary:hover:not(:disabled) {
+  background: var(--amber-hover);
+  color: var(--accent-ink);
+  border-color: var(--amber-hover);
+}
+#upgrade-dock {
+  position: absolute;
+  z-index: 5;
+  right: max(20px, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(660px, calc(100% - 40px));
+  max-height: calc(100dvh - 100px);
+  height: 640px;
+  overflow: clip;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: var(--workshop);
+  display: flex;
+  flex-direction: column;
+}
+#upgrade-dock header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  flex: none;
+  padding-inline: 16px;
+}
+#upgrade-dock h2 {
+  font-size: 20px;
+  flex: 1;
+}
+#workshop-cash {
+  color: var(--amber);
+  font-size: 16px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+#close-upgrades {
+  font-size: 24px;
+  background: var(--clear);
+  border-color: var(--clear);
+  width: 44px;
+  margin-right: -8px;
+}
+#upgrade-tabs {
+  display: flex;
+  gap: 0;
+  padding-inline: 16px;
+  flex: none;
+  border-bottom: 1px solid var(--edge);
+}
+#upgrade-tabs button {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  background: var(--clear);
+  border: 0;
+  border-bottom: 2px solid var(--clear);
+  border-radius: 0;
+  padding-inline: 4px;
+}
+#upgrade-tabs button[aria-selected="true"] {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+#tree-hint {padding:4px 16px;font-size:11px;color:var(--muted);background:var(--tree-bg)}
+#tree-scroll {
+  flex: 1;
+  min-height: 108px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) var(--panel);
+  background: var(--tree-bg);
+}
+#skill-tree {
+  position: relative;
+  margin-inline: auto;
+  min-height: 160px;
+}
+.tree-links {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.skill-connector {
+  stroke: var(--link-locked);
+  stroke-width: 2;
+  fill: none;
+}
+.skill-connector.owned {
+  stroke: var(--link-owned);
+}
+.skill-node {
+  position: absolute;
+  width: 168px;
+  height: 76px;
+  text-align: left;
+  padding: 8px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
+  background: var(--node-bg);
+  border-color: var(--node-edge);
+  font-size: 14px;
+}
+.skill-node > span {
+  grid-column: 1/-1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.skill-node small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.skill-node b {
+  font-size: 12px;
+  color: var(--amber);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.skill-node[data-locked="true"] {
+  border-style: dashed;
+  color: var(--muted);
+}
+.skill-node[data-owned="true"] {
+  border-color: var(--healthy);
+}
+.skill-node[aria-pressed="true"] {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+  background: var(--selected);
+}
+#skill-inspector {
+  padding: 12px 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--edge);
+  min-height: 116px;
+  flex: none;
+}
+#skill-inspector > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+#skill-name {
+  font-size: 16px;
+}
+#skill-description {
+  font-size: 13px;
+  line-height: 1.4;
+  max-width: 48ch;
+  color: var(--subtle);
+}
+#skill-requirements {
+  font-size: 12px;
+  min-height: 18px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.skill-actions {
+  display: flex;
+  gap: 4px;
+  flex-direction: column;
+}
+.skill-actions button {
+  padding-inline: 12px;
+  font-size: 13px;
+}
+#upgrade-dock footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--edge);
+  flex: none;
+}
+#loadout {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+#loadout button {
+  padding-inline: 8px;
+  font-size: 12px;
+  color: var(--subtle);
+  background: var(--clear);
+  border-style: dashed;
+}
+#continue-wave {
+  padding-inline: 16px;
+  color: var(--amber);
+  font-size: 14px;
+}
+#render-error,
+noscript {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(360px, 90%);
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--danger);
+  font-size: 14px;
+  text-align: center;
+}
+@media (max-width: 700px) {
+  .run-hud {
+    left: 12px;
+    top: max(12px, env(safe-area-inset-top));
+    gap: 16px;
+  }
+  .run-hud b {
+    font-size: 20px;
+  }
+  .utility {
+    right: 8px;
+    top: max(12px, env(safe-area-inset-top));
+  }
+  .utility #fullscreen {
+    display: none;
+  }
+  #boss-health {
+    top: max(108px, env(safe-area-inset-top));
+    width: 64%;
+    max-width: 280px;
+  }
+  #weather-status {
+    left: 12px;
+    top: max(72px, env(safe-area-inset-top));
+    font-size: 11px;
+  }
+  .combat-controls {
+    gap: 8px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+    justify-content: center;
+    width: max-content;
+    max-width: calc(100% - 16px);
+  }
+  .combat-controls button {
+    width: 60px;
+    height: 68px;
+    font-size: 11px;
+  }
+  .combat-controls small {
+    font-size: 11px;
+  }
+  .combat-controls #open-upgrades {
+    min-width: 64px;
+    padding-inline: 8px;
+  }
+  .combat-controls svg {
+    width: 22px;
+    height: 22px;
+  }
+  .wave-button {
+    bottom: 156px;
+  }
+  #upgrade-dock {
+    right: 12px;
+    width: calc(100% - 24px);
+    height: min(700px, calc(100dvh - 100px));
+    max-height: calc(100dvh - 100px);
+  }
+  #upgrade-dock header {
+    padding-inline: 12px;
+    gap: 8px;
+    min-height: 52px;
+  }
+  #upgrade-tabs {
+    padding-inline: 8px;
+  }
+  #upgrade-tabs button {
+    font-size: 12px;
+  }
+  #skill-tree {
+    margin-inline: 0;
+  }
+  #skill-inspector {
+    padding: 12px;
+    gap: 8px;
+    min-height: 136px;
+    align-items: flex-start;
+  }
+  #skill-description {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .skill-actions button {
+    font-size: 12px;
+    padding-inline: 8px;
+  }
+  #upgrade-dock footer {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  #loadout {
+    gap: 4px;
+    max-width: 180px;
+  }
+  #loadout button {
+    font-size: 11px;
+  }
+  #continue-wave {
+    padding-inline: 12px;
+    font-size: 13px;
+  }
+  .start-screen {
+    top: 32%;
+    min-width: 260px;
+    padding: 16px;
+  }
+  .start-screen h1 {
+    font-size: 30px;
+  }
+  #tower-hud {
+    width: 200px;
+  }
+}
+@media (max-height: 500px) and (min-width: 601px) {
+  .run-hud {
+    top: 8px;
+  }
+  .run-hud b {
+    font-size: 20px;
+  }
+  .utility {
+    top: 8px;
+  }
+  .utility #fullscreen {
+    display: none;
+  }
+  #weather-status {
+    top: 60px;
+    font-size: 11px;
+  }
+  #boss-health {
+    top: 12px;
+    width: 26%;
+  }
+  #tower-hud {
+    width: 180px;
+  }
+  .world-meter {
+    height: 16px;
+  }
+  .combat-controls {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+  .combat-controls button {
+    height: 56px;
+    width: 64px;
+    padding-block: 4px;
+    font-size: 11px;
+  }
+  .combat-controls svg {
+    height: 20px;
+    width: 20px;
+    margin-bottom: 0;
+  }
+  .wave-button {
+    bottom: 76px;
+  }
+  #upgrade-dock {
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+    width: 600px;
+    right: 12px;
+  }
+  #upgrade-dock header {
+    min-height: 44px;
+  }
+  #upgrade-tabs button {
+    min-height: 44px;
+  }
+  #skill-inspector {
+    min-height: 88px;
+    padding: 8px 12px;
+  }
+  #skill-description {
+    font-size: 12px;
+  }
+  #upgrade-dock footer {
+    padding: 4px 12px;
+  }
+  .start-screen {
+    top: 30%;
+    gap: 8px;
+    padding: 8px;
+  }
+  .start-screen h1 {
+    font-size: 28px;
+  }
+}
+@media (max-width: 365px) {
+  .run-hud {
+    gap: 12px;
+  }
+  .run-hud b {
+    font-size: 18px;
+  }
+  .utility {
+    gap: 0;
+  }
+  .combat-controls {
+    gap: 4px;
+  }
+  .combat-controls button {
+    width: 56px;
+  }
+  .control-group {
+    gap: 4px;
+  }
+  #upgrade-tabs button {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

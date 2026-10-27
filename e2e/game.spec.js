@@ -2,130 +2,320 @@ import { test, expect } from '@playwright/test';
 
 async function openGame(page) {
   const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
+  page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('./');
   await expect(page).toHaveTitle(/DaProdTurret/i);
-  await page.waitForFunction(() => window.__DAPROD__?.game?.version === 2, null, { timeout: 20_000 });
+  await page.waitForFunction(
+    () => window.__DAPROD__?.game?.version === 3,
+    null,
+    { timeout: 20_000 },
+  );
   await expect(page.locator('#viewport canvas')).toBeVisible();
   return errors;
 }
 async function start(page) {
-  const button = page.getByTestId('start-button');
-  if (await button.isVisible()) await button.click();
+  if (await page.getByTestId('start-button').isVisible())
+    await page.getByTestId('start-button').click();
+  else if (await page.getByTestId('continue-button').isVisible())
+    await page.getByTestId('continue-button').click();
   else await page.getByTestId('wave-button').click();
-  await expect.poll(() => page.evaluate(() => window.__DAPROD__.game.phase)).toBe('combat');
+  await expect
+    .poll(() => page.evaluate(() => __DAPROD__.game.phase))
+    .toBe('combat');
+}
+async function quiet(page) {
+  await page.evaluate(() => {
+    const g = __DAPROD__.game;
+    g.enemies = [];
+    g.projectiles = [];
+    g.effects = [];
+    g.spawnRemaining = 1;
+    g.spawnTimer = 999;
+    g.cooldown = 0;
+    g.heat = 0;
+    g.overheated = false;
+    g.overheatTimer = 0;
+    g.energy = 100;
+    g.lastShot = null;
+  });
+}
+async function workshop(page) {
+  await page.evaluate(() => {
+    const g = __DAPROD__.game;
+    g.spawnRemaining = 0;
+    g.enemies = [];
+    g.projectiles = [];
+    g.cash = 50000;
+  });
+  await expect(page.locator('#upgrade-dock')).toBeVisible();
+}
+async function buy(page, id, branch) {
+  if (branch) await page.getByTestId(`upgrade-tab-${branch}`).click();
+  await page.getByTestId(`skill-${id}`).click();
+  await expect(page.getByTestId('buy-skill')).toBeEnabled();
+  await page.getByTestId('buy-skill').click();
 }
 
-// These scenarios deliberately inject controlled state to exercise UI boundaries.
-// Natural progression and weapon physics are separately covered by engine tests.
-test('full-screen game: literal manual shots, ammo, default audio and in-game upgrades', async ({ page }, info) => {
+test('manual sea aiming, heat without ammo, default audio and no passive shooting', async ({
+  page,
+}, info) => {
   const errors = await openGame(page);
   await start(page);
-  await page.evaluate(() => {
-    const g = window.__DAPROD__.game;
-    g.enemies = []; g.projectiles = []; g.effects = [];
-    g.spawnRemaining = 1; g.spawnTimer = 999; g.cooldown = 0;
-    g.ammo = 36; g.reloadTimer = 0; g.energy = 100; g.lastShot = null;
-    g.scrap = 1000;
-  });
-  const point = await page.evaluate(() => window.__DAPROD__.project(10, -10));
+  await quiet(page);
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => __DAPROD__.game.lastShot)).toBeNull();
+  const point = await page.evaluate(() => ({ ...__DAPROD__.project(10, -10) }));
   await page.mouse.click(point.x, point.y);
-  await expect.poll(() => page.evaluate(() => window.__DAPROD__.game.lastShot?.manual)).toBe(true);
-  const shot = await page.evaluate(() => ({ ...window.__DAPROD__.game.lastShot, ammo: window.__DAPROD__.game.ammo, energy: window.__DAPROD__.game.energy }));
-  expect(shot.x).toBeCloseTo(10, 0); expect(shot.z).toBeCloseTo(-10, 0);
-  expect(shot.ammo).toBeLessThan(36); expect(shot.energy).toBe(100);
-  expect(await page.evaluate(() => window.__DAPROD__.muted)).toBe(false);
+  await expect
+    .poll(() => page.evaluate(() => __DAPROD__.game.lastShot?.manual))
+    .toBe(true);
+  const result = await page.evaluate(() => ({
+    ...__DAPROD__.game.lastShot,
+    heat: __DAPROD__.game.heat,
+    energy: __DAPROD__.game.energy,
+    ammo: 'ammo' in __DAPROD__.game,
+  }));
+  expect(result.x).toBeCloseTo(10, 0);
+  expect(result.z).toBeCloseTo(-10, 0);
+  expect(result.heat).toBeGreaterThan(0);
+  expect(result.energy).toBe(100);
+  expect(result.ammo).toBe(false);
+  expect(await page.evaluate(() => __DAPROD__.muted)).toBe(false);
+  await expect(page.getByTestId('upgrades-button')).toBeDisabled();
   await expect(page.locator('#tower-hud')).toBeVisible();
-  await page.getByTestId('upgrades-button').click();
-  const stopped = await page.evaluate(() => window.__DAPROD__.game.time);
-  await page.waitForTimeout(300);
-  expect(await page.evaluate(() => window.__DAPROD__.game.time)).toBe(stopped);
-  await page.getByTestId('upgrade-cannon-damage').click();
-  expect(await page.evaluate(() => window.__DAPROD__.game.weaponUpgrades.cannon.damage)).toBe(1);
-  await page.getByTestId('close-upgrades').click();
-  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1 && document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-  await expect(page.getByText(/Settore nord|Mare aperto|Avamposto 07|La linea tiene|Ricerca estratta/i)).toHaveCount(0);
-  await page.screenshot({ path: info.outputPath('arcade-game.png') });
+  await expect(page.getByTestId('ability-emp')).toBeHidden();
+  await expect(page.getByText(/PUNTI|AMMO|RELOAD|Rifornimento/i)).toHaveCount(
+    0,
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth <= innerWidth + 1 &&
+        document.documentElement.scrollHeight <= innerHeight + 1,
+    ),
+  ).toBe(true);
+  await page.screenshot({ path: info.outputPath('manual-combat.png') });
   expect(errors).toEqual([]);
 });
 
-test('wave gates, EMP stun, boss HP and missile projectiles are playable in-game', async ({ page }) => {
+test('every wave stops for a real cash skill tree and cannon multishot', async ({
+  page,
+}, info) => {
   const errors = await openGame(page);
   await start(page);
-  expect(await page.evaluate(() => window.__DAPROD__.game.autoWave)).toBe(true);
-  await expect(page.getByTestId('weapon-tesla')).toBeDisabled();
-  await expect(page.getByTestId('weapon-rail')).toBeDisabled();
+  await quiet(page);
+  await workshop(page);
+  const wave = await page.evaluate(() => __DAPROD__.game.wave);
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => __DAPROD__.game.wave)).toBe(wave);
+  await expect(page.locator('.skill-connector')).not.toHaveCount(0);
+  await buy(page, 'cannonDamage', 'cannon');
+  await buy(page, 'cannonMultishot');
+  expect(
+    await page.evaluate(() => __DAPROD__.game.skills.cannonMultishot),
+  ).toBe(1);
+  await page.screenshot({ path: info.outputPath('skill-tree.png') });
+  await start(page);
+  await quiet(page);
+  const p = await page.evaluate(() => ({ ...__DAPROD__.project(10, -10) }));
+  await page.mouse.click(p.x, p.y);
+  expect(
+    await page.evaluate(
+      () =>
+        __DAPROD__.game.projectiles.filter(
+          (p) =>
+            p.kind === 'shell' ||
+            p.kind === 'cannon' ||
+            p.kind === 'cannon-shell',
+        ).length,
+    ),
+  ).toBeGreaterThanOrEqual(2);
+  expect(errors).toEqual([]);
+});
+
+test('cash unlocks weapons and abilities; only equipped purchased support can fire', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+  await start(page);
+  await quiet(page);
+  await workshop(page);
+  // Buy prerequisites in their published order, through engine hooks; selection/equip is real UI.
   await page.evaluate(() => {
-    const g = window.__DAPROD__.game;
-    g.wave = 5; g.spawnRemaining = 1; g.spawnTimer = 999; g.cooldown = 99;
-    g.enemies = [{ id: 9901, type: 'boss', x: 8, z: 2, hp: 10000, maxHp: 10000, speed: .2, reward: 50, attackCooldown: 99, attackRange: 12, stunnedFor: 0, submerged: false, diveTimer: 0 }];
-    g.energy = 100; g.pulseCooldown = 0; g.missileCooldown = 0;
+    const api = __DAPROD__,
+      g = api.game;
+    function acquire(id) {
+      for (const p of api.skillDefinitions[id].parents || [])
+        if (!g.skills[p]) acquire(p);
+      if (!g.skills[id]) {
+        g.cash = 100000;
+        api.buy(id);
+      }
+    }
+    for (const id of [
+      'unlockTesla',
+      'unlockRail',
+      'unlockEmp',
+      'unlockMissiles',
+      'unlockAirstrike',
+    ])
+      acquire(id);
+    for (const id of [...g.loadout]) api.equip(id);
+  });
+  await page.getByTestId('upgrade-tab-abilities').click();
+  await page.getByTestId('skill-unlockEmp').click();
+  await page.locator('#equip-skill').click();
+  expect(await page.evaluate(() => __DAPROD__.game.loadout)).toEqual(['emp']);
+  await page.getByTestId('skill-unlockMissiles').click();
+  await expect(page.locator('#equip-skill')).toBeDisabled();
+  await page
+    .locator('#loadout')
+    .getByRole('button', { name: 'Rimuovi EMP', exact: true })
+    .click();
+  await page.locator('#equip-skill').click();
+  expect(await page.evaluate(() => __DAPROD__.game.loadout)).toEqual([
+    'missiles',
+  ]);
+  await start(page);
+  await quiet(page);
+  await expect(page.getByTestId('weapon-tesla')).toBeVisible();
+  await page.getByTestId('weapon-tesla').click();
+  expect(await page.evaluate(() => __DAPROD__.game.weapon)).toBe('tesla');
+  await page.getByTestId('weapon-rail').click();
+  expect(await page.evaluate(() => __DAPROD__.game.weapon)).toBe('rail');
+  await page.evaluate(() => {
+    const g = __DAPROD__.game;
+    g.enemies = [
+      {
+        id: 9901,
+        type: 'boss',
+        x: 8,
+        z: 2,
+        hp: 10000,
+        maxHp: 10000,
+        speed: 0.2,
+        reward: 50,
+        attackCooldown: 99,
+        attackRange: 12,
+        stunnedFor: 0,
+        submerged: false,
+        diveTimer: 0,
+      },
+    ];
   });
   await expect(page.locator('#boss-health')).toBeVisible();
-  await page.getByTestId('pulse-button').click();
-  expect(await page.evaluate(() => window.__DAPROD__.game.enemies[0].stunnedFor)).toBeGreaterThan(0);
-  await page.evaluate(() => { window.__DAPROD__.game.energy = 100; });
-  await page.getByTestId('missile-button').click();
-  await expect.poll(() => page.evaluate(() => window.__DAPROD__.game.projectiles.some(p => p.kind === 'missile'))).toBe(true);
-  // Eligibility is current-run wave, not a permanent record or purchase.
-  await page.evaluate(() => { window.__DAPROD__.game.wave = 25; });
-  await expect(page.getByTestId('weapon-tesla')).toBeEnabled();
-  await page.getByTestId('weapon-tesla').click();
-  expect(await page.evaluate(() => window.__DAPROD__.game.weapon)).toBe('tesla');
-  await expect(page.getByTestId('weapon-rail')).toBeDisabled();
-  await page.evaluate(() => { window.__DAPROD__.game.wave = 50; });
-  await expect(page.getByTestId('weapon-rail')).toBeEnabled();
-  await page.getByTestId('weapon-rail').click();
-  expect(await page.evaluate(() => window.__DAPROD__.game.weapon)).toBe('rail');
+  await page.getByTestId('ability-missiles').click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        __DAPROD__.game.projectiles.some(
+          (p) => p.kind === 'missile' && p.y > 2,
+        ),
+      ),
+    )
+    .toBe(true);
   expect(errors).toEqual([]);
 });
 
-test('checkpoint stops ten-wave advancement and defeat preserves only the record', async ({ page }) => {
+test('wheel and pinch change the camera without firing; aim round-trips after zoom', async ({
+  page,
+}, info) => {
   const errors = await openGame(page);
   await start(page);
+  await quiet(page);
+  expect(await page.evaluate(() => __DAPROD__.camera.isPerspectiveCamera)).toBe(
+    true,
+  );
+  const before = await page.evaluate(() => __DAPROD__.zoom);
+  await page.mouse.move(120, 200);
+  await page.mouse.wheel(0, -300);
+  await expect
+    .poll(() => page.evaluate(() => __DAPROD__.zoom))
+    .not.toBe(before);
+  const geometry = await page.evaluate(() => {
+    const a = { ...__DAPROD__.project(12, -9) };
+    return { a, b: { ...__DAPROD__.unproject(a.x, a.y) } };
+  });
+  expect(geometry.b.x).toBeCloseTo(12, 3);
+  expect(geometry.b.z).toBeCloseTo(-9, 3);
+  if (info.project.name !== 'desktop') {
+    const client = await page.context().newCDPSession(page);
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [
+        { x: 110, y: 250, id: 1 },
+        { x: 210, y: 250, id: 2 },
+      ],
+    });
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [
+        { x: 80, y: 250, id: 1 },
+        { x: 240, y: 250, id: 2 },
+      ],
+    });
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
+    await client.detach();
+    expect(await page.evaluate(() => __DAPROD__.game.lastShot)).toBeNull();
+  }
+  await page.locator('#reset-camera').click();
+  await expect.poll(() => page.evaluate(() => __DAPROD__.zoom)).toBe(1);
+  expect(errors).toEqual([]);
+});
+
+test('environment is visible and loss clears purchases but preserves wave record', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+  await start(page);
+  await quiet(page);
   await page.evaluate(() => {
-    const g = window.__DAPROD__.game;
-    g.wave = 10; g.phase = 'combat'; g.enemies = []; g.projectiles = [];
-    g.spawnRemaining = 0; g.score = 1234;
+    const g = __DAPROD__.game;
+    g.environment = {
+      type: 'current',
+      timeLeft: 30,
+      duration: 30,
+      dx: 0.7,
+      dz: 0.3,
+    };
+    g.highWave = 9;
+    g.hp = 0;
   });
-  await expect.poll(() => page.evaluate(() => window.__DAPROD__.game.phase)).toBe('upgrade');
-  await page.waitForTimeout(1500);
-  expect(await page.evaluate(() => window.__DAPROD__.game.wave)).toBe(10);
-  await page.getByTestId('wave-button').click();
-  await expect.poll(() => page.evaluate(() => window.__DAPROD__.game.wave)).toBe(11);
-  await page.evaluate(() => { window.__DAPROD__.game.hp = 0; });
-  await expect.poll(() => page.evaluate(() => window.__DAPROD__.game.phase)).toBe('defeat');
-  await page.locator('#restart').click();
-  const g = await page.evaluate(() => window.__DAPROD__.game);
-  expect(g.highScore).toBeGreaterThanOrEqual(1234);
-  expect(g.score).toBe(0);
-  expect(g.weaponUpgrades.cannon.damage).toBe(0);
-  expect(g.unlocked).toEqual(['cannon']);
-  expect('research' in g).toBe(false);
+  await expect(page.locator('#defeat')).toBeVisible();
+  await expect(page.locator('#high-wave')).toContainText('9');
+  await page.getByTestId('restart-button').click();
+  const g = await page.evaluate(() => __DAPROD__.game);
+  expect(g.highWave).toBeGreaterThanOrEqual(9);
+  expect(g.skills.cannonMultishot || 0).toBe(0);
+  expect(g.loadout).toEqual([]);
+  expect(g.wave).toBe(1);
+  for (const old of ['score', 'ammo', 'research']) expect(old in g).toBe(false);
   expect(errors).toEqual([]);
 });
 
-test('sea events are visible world objects and grant a one-time collectible reward',async({page})=>{
-  const errors=await openGame(page);await start(page);
-  await page.evaluate(()=>{
-    const g=window.__DAPROD__.game;g.enemies=[];g.spawnRemaining=1;g.spawnTimer=999;
-    g.events=[{id:8801,type:'salvage',x:8,z:5,ttl:30,value:80}];g.scrap=60;
-  });
-  await expect.poll(()=>page.evaluate(()=>!!window.__DAPROD__.scene.getObjectByName('sea-event-8801'))).toBe(true);
-  await page.getByTestId('event-8801').click();
-  await expect.poll(()=>page.evaluate(()=>window.__DAPROD__.game.scrap)).toBe(140);
-  await expect(page.getByTestId('event-8801')).toHaveCount(0);
-  expect(errors).toEqual([]);
-});
-
-test('static PWA reopens the full game offline under its deployment scope', async ({ page, context }) => {
+test('static production PWA reopens all v3 models offline under the deployment scope', async ({
+  page,
+  context,
+}) => {
   const errors = await openGame(page);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
   await context.setOffline(true);
   await page.reload();
-  await page.waitForFunction(() => window.__DAPROD__?.game?.version === 2, null, { timeout: 20_000 });
-  await expect(page.locator('#viewport canvas')).toBeVisible();
+  await page.waitForFunction(
+    () => window.__DAPROD__?.game?.version === 3,
+    null,
+    { timeout: 20000 },
+  );
+  const assets = await page.evaluate(
+    async () =>
+      (await __DAPROD__.assetsReady).filter((x) => x.status === 'fulfilled')
+        .length,
+  );
+  expect(assets).toBe(9);
   await start(page);
   expect(errors).toEqual([]);
 });

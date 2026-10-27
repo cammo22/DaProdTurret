@@ -82,82 +82,95 @@
     },
     "tesla": {
       "file": "assets/fleet/tesla.glb",
-      "taskId": "01a17a9f-769b-7581-b9ca-0839091e30d7",
-      "previewTaskId": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
-      "refineTaskId": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+      "taskId": "01a17f07-4adc-74ac-851b-a0cb2a089cea",
+      "previewTaskId": "01a17f06-346c-70db-9bd1-abeed753e97e",
+      "refineTaskId": "01a17f07-4adc-74ac-851b-a0cb2a089cea",
       "model": "meshy-6-lite",
       "status": "SUCCEEDED",
-      "triangles": 4101,
-      "bytes": 658516,
+      "triangles": 10159,
+      "bytes": 1327392,
+      "sha256": "2ddc4d571a584490d5bbfb6c260f85eb962a0db5590413e12b263a0948ed866a",
+      "bounds": {
+        "min": [
+          -0.720058023929596,
+          -0.9514390230178833,
+          -0.7197870016098022
+        ],
+        "max": [
+          0.7158759832382202,
+          0.9453340172767639,
+          0.712228000164032
+        ]
+      },
+      "meshCount": 1,
+      "materialCount": 1,
+      "embeddedImages": 3,
+      "nativeLoader": "GLTFLoader from installed Three; 0 errors",
+      "nativeTextureSlots": 4,
       "credits": 15,
       "previewCredits": 5,
       "refineCredits": 10,
-      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
-      "bounds": {
-        "min": [
-          -0.5594130158424377,
-          -0.9512689709663391,
-          -0.4042010009288788
-        ],
-        "max": [
-          0.5554739832878113,
-          0.9461420178413391,
-          0.4021109938621521
-        ]
-      },
-      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TESLA TURRET HEAD ONLY, NO BASE, NO PLATFORM. Bold vertical stacked copper toroidal coils, squat steel mounting head, two curved conductive prongs enclosing a cyan energy core. Elegant industrial electric weapon, not a cannon.",
+      "axisNote": "+Y up, +Z forward baked into geometry. Arbitrary scale; recenter/scale from bounds; rigid mesh without articulation pivot.",
+      "prompt": "Compact dual Tesla electrical coil weapon turret for a stylized industrial naval arcade game, readable top-down silhouette. TWO distinct thick upright copper solenoid towers side by side, each with five bold stacked copper rings and bright cyan glass spherical electrode cap. Dark gunmetal squat circular rotating pedestal below the coils, small orange trim. Short horizontal forward U-shaped discharge fork between the towers, points positive Z; no gun barrel, no cannon. Coils and pedestal form one compact yaw-able weapon head. Large clean shapes, beveled metal, strongly separated twin coils. Single isolated object, Y up, front +Z. No ground, no sea platform, no scenery, no lightning effects, no text, no logos, no people.",
       "previewParameters": {
         "mode": "preview",
-        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TESLA TURRET HEAD ONLY, NO BASE, NO PLATFORM. Bold vertical stacked copper toroidal coils, squat steel mounting head, two curved conductive prongs enclosing a cyan energy core. Elegant industrial electric weapon, not a cannon.",
+        "prompt": "Compact dual Tesla electrical coil weapon turret for a stylized industrial naval arcade game, readable top-down silhouette. TWO distinct thick upright copper solenoid towers side by side, each with five bold stacked copper rings and bright cyan glass spherical electrode cap. Dark gunmetal squat circular rotating pedestal below the coils, small orange trim. Short horizontal forward U-shaped discharge fork between the towers, points positive Z; no gun barrel, no cannon. Coils and pedestal form one compact yaw-able weapon head. Large clean shapes, beveled metal, strongly separated twin coils. Single isolated object, Y up, front +Z. No ground, no sea platform, no scenery, no lightning effects, no text, no logos, no people.",
         "model_type": "standard",
         "ai_model": "meshy-6-lite",
         "geometry_resolution": "standard",
         "should_remesh": true,
         "topology": "triangle",
-        "target_polycount": 4000,
+        "target_polycount": 10000,
         "target_formats": [
           "glb"
         ]
       },
       "refineParameters": {
         "mode": "refine",
-        "preview_task_id": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+        "preview_task_id": "01a17f06-346c-70db-9bd1-abeed753e97e",
         "ai_model": "meshy-6-lite",
         "enable_pbr": true,
         "texture_resolution": "2k",
+        "texture_prompt": "Bold polished copper coil windings, cyan blue glass electrode caps, dark gunmetal pedestal and insulators, orange accent strips. Clean stylized industrial naval arcade weapon. Strong color separation: copper coils, cyan caps, dark base. No text, no logos, no dirt obscuring shapes.",
         "target_formats": [
           "glb"
-        ],
-        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Player weapon: navy steel with amber recoil and copper parts, cyan power details."
+        ]
       },
       "providerReceipt": {
         "preview": {
-          "id": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+          "id": "01a17f06-346c-70db-9bd1-abeed753e97e",
+          "mode": "preview",
           "status": "SUCCEEDED",
-          "created_at": 1793058586447,
-          "started_at": 1793058586451,
-          "finished_at": 1793058631626,
+          "progress": 100,
+          "created_at": 1793132477355,
+          "started_at": 1793132477365,
+          "finished_at": 1793132530673,
           "consumed_credits": 5,
           "task_error": null
         },
         "refine": {
-          "id": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+          "id": "01a17f07-4adc-74ac-851b-a0cb2a089cea",
+          "mode": "refine",
           "status": "SUCCEEDED",
-          "created_at": 1793058635294,
-          "started_at": 1793058635304,
-          "finished_at": 1793058685163,
+          "progress": 100,
+          "created_at": 1793132550457,
+          "started_at": 1793132550462,
+          "finished_at": 1793132591931,
           "consumed_credits": 10,
           "task_error": null
         }
       },
       "processing": [
-        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
-        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
-        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+        "Baked +Y up and +Z forward into positions/normals; bomber provider nose was -X; Tesla face was +Z.",
+        "Embedded provider PBR images resized from 2048 to 1024px, JPEG quality86; no external textures/buffers or decoder dependencies.",
+        "Triangle vertex repack; rigid single mesh, no articulation rig."
       ],
       "thumbnail": "assets/fleet/previews/tesla.png",
       "geometryThumbnail": "assets/fleet/previews/tesla-geometry.png",
-      "sha256": "730b7213e102a69e287d4065c06799f35ef03086b82afb3aab8fb4f573bb7201"
+      "nativeThumbnail": "assets/fleet/previews/tesla-native.png",
+      "limitations": [
+        "Electrodes are blue-cyan glossy caps, not emissive glass. Short central cable/socket instead of a fully modeled horizontal firing fork; no long cannon barrel. Compact integral rotating pedestal remains part of head."
+      ]
     },
     "rail": {
       "file": "assets/fleet/rail.glb",
@@ -635,20 +648,223 @@
       "thumbnail": "assets/fleet/previews/submarine.png",
       "geometryThumbnail": "assets/fleet/previews/submarine-geometry.png",
       "sha256": "74d7bce0958cfb1af97071462ad0d4885daef26c13ef03c1cf2c742cd8e0fc34"
+    },
+    "bomber": {
+      "file": "assets/fleet/bomber.glb",
+      "taskId": "01a17f06-f220-704b-8fdb-b48a86aa7780",
+      "previewTaskId": "01a17f06-346d-76e4-a747-efba9cb319cf",
+      "refineTaskId": "01a17f06-f220-704b-8fdb-b48a86aa7780",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 10468,
+      "bytes": 1371456,
+      "sha256": "73e2dc183708b0546bfbfdafa0f6466849f23705d6e683b30ece99531566235a",
+      "bounds": {
+        "min": [
+          -0.9515439867973328,
+          -0.23008400201797485,
+          -0.930342972278595
+        ],
+        "max": [
+          0.9515439867973328,
+          0.25989800691604614,
+          0.7185248136520386
+        ]
+      },
+      "meshCount": 1,
+      "materialCount": 1,
+      "embeddedImages": 3,
+      "nativeLoader": "GLTFLoader from installed Three; 0 errors",
+      "nativeTextureSlots": 4,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up, +Z forward baked into geometry. Arbitrary scale; recenter/scale from bounds; rigid mesh without articulation pivot.",
+      "prompt": "Stylized twin-engine naval patrol bomber aircraft, isolated flying game asset. Strong readable airplane silhouette from above: broad straight wings, long tapered fuselage with rounded glass cockpit nose, TWO large propeller engine nacelles one on each wing, conventional rear tailplane and tall vertical fin. Clearly separated wings and fuselage, chunky clean beveled forms for a small top-down naval arcade game. Retracted landing gear, closed bomb bay, no pilot figure. Contrasting warm beige metal fuselage, naval green wings and engine cowls, bold orange wingtip stripes, dark cyan cockpit glass. Symmetrical aircraft, Y up, nose forward +Z, wings extend along X. No ground, no water, no stand, no scenery, no text, no lettering, no insignia, no logos.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized twin-engine naval patrol bomber aircraft, isolated flying game asset. Strong readable airplane silhouette from above: broad straight wings, long tapered fuselage with rounded glass cockpit nose, TWO large propeller engine nacelles one on each wing, conventional rear tailplane and tall vertical fin. Clearly separated wings and fuselage, chunky clean beveled forms for a small top-down naval arcade game. Retracted landing gear, closed bomb bay, no pilot figure. Contrasting warm beige metal fuselage, naval green wings and engine cowls, bold orange wingtip stripes, dark cyan cockpit glass. Symmetrical aircraft, Y up, nose forward +Z, wings extend along X. No ground, no water, no stand, no scenery, no text, no lettering, no insignia, no logos.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 10000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17f06-346d-76e4-a747-efba9cb319cf",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "texture_prompt": "Warm beige painted metal fuselage and nose, naval olive green wings and twin engine cowls, bright orange wingtip stripes and tail accents, dark cyan cockpit glass, dark metal propellers. Clean high contrast stylized naval patrol strike bomber, large readable color blocks, no text, no insignia, no logos.",
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17f06-346d-76e4-a747-efba9cb319cf",
+          "mode": "preview",
+          "status": "SUCCEEDED",
+          "progress": 100,
+          "created_at": 1793132477192,
+          "started_at": 1793132477201,
+          "finished_at": 1793132521895,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17f06-f220-704b-8fdb-b48a86aa7780",
+          "mode": "refine",
+          "status": "SUCCEEDED",
+          "progress": 100,
+          "created_at": 1793132525697,
+          "started_at": 1793132525711,
+          "finished_at": 1793132562476,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Clipped provider aircraft at Z=0 and mirrored its negative-Z half, retaining generated UVs/materials, to repair asymmetric crossed wing silhouette. Result is a stylized symmetric swept-wing/canard strike aircraft, not an exact conventional straight-wing bomber.",
+        "Locally removed obvious generated pseudo-letter decals from base-color texture via neighboring paint-color interpolation; no new lettering or logos added.",
+        "Baked +Y up and +Z forward into positions/normals; bomber provider nose was -X; Tesla face was +Z.",
+        "Embedded provider PBR images resized from 2048 to 1024px, JPEG quality86; no external textures/buffers or decoder dependencies.",
+        "Triangle vertex repack; rigid single mesh, no articulation rig."
+      ],
+      "thumbnail": "assets/fleet/previews/bomber.png",
+      "geometryThumbnail": "assets/fleet/previews/bomber-geometry.png",
+      "nativeThumbnail": "assets/fleet/previews/bomber-native.png",
+      "limitations": [
+        "Symmetry repaired from generated half-airframe. Swept-wing/canard jet-like twin-engine aircraft rather than the requested conventional straight-wing propeller patrol bomber. Beige/orange dominates; green is limited to engine/panel areas. Obvious generated pseudo-letter decals were locally removed; small incidental texture noise may remain."
+      ]
     }
   },
-  "totalCredits": 120,
+  "totalCredits": 150,
   "budgetCap": 160,
-  "generationJobs": 16,
-  "previewJobs": 8,
-  "refineJobs": 8,
+  "generationJobs": 20,
+  "previewJobs": 10,
+  "refineJobs": 10,
   "provider": "Meshy",
   "documentation": [
     "https://docs.meshy.ai/en/api/text-to-3d",
     "https://docs.meshy.ai/en/api/pricing"
   ],
   "pricingChecked": "meshy-6-lite standard preview5; 2K refine10. Actual consumed_credits recorded per successful exact task.",
-  "totalBytes": 5138956,
-  "totalTriangles": 28808,
-  "licenseNote": "User-authorized generation on their Meshy account. Usage subject to Meshy account terms; no independent license clearance claim."
+  "totalBytes": 7179288,
+  "totalTriangles": 45334,
+  "licenseNote": "User-authorized generation on their Meshy account. Usage subject to Meshy account terms; no independent license clearance claim.",
+  "assetHistory": {
+    "tesla": [
+      {
+        "reason": "Superseded for v0.3 readability: user rejected prior Tesla silhouette. Historical file slot now points to replacement; hash below identifies previous artifact.",
+        "asset": {
+          "file": "assets/fleet/tesla.glb",
+          "taskId": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+          "previewTaskId": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+          "refineTaskId": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+          "model": "meshy-6-lite",
+          "status": "SUCCEEDED",
+          "triangles": 4101,
+          "bytes": 658516,
+          "credits": 15,
+          "previewCredits": 5,
+          "refineCredits": 10,
+          "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+          "bounds": {
+            "min": [
+              -0.5594130158424377,
+              -0.9512689709663391,
+              -0.4042010009288788
+            ],
+            "max": [
+              0.5554739832878113,
+              0.9461420178413391,
+              0.4021109938621521
+            ]
+          },
+          "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TESLA TURRET HEAD ONLY, NO BASE, NO PLATFORM. Bold vertical stacked copper toroidal coils, squat steel mounting head, two curved conductive prongs enclosing a cyan energy core. Elegant industrial electric weapon, not a cannon.",
+          "previewParameters": {
+            "mode": "preview",
+            "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TESLA TURRET HEAD ONLY, NO BASE, NO PLATFORM. Bold vertical stacked copper toroidal coils, squat steel mounting head, two curved conductive prongs enclosing a cyan energy core. Elegant industrial electric weapon, not a cannon.",
+            "model_type": "standard",
+            "ai_model": "meshy-6-lite",
+            "geometry_resolution": "standard",
+            "should_remesh": true,
+            "topology": "triangle",
+            "target_polycount": 4000,
+            "target_formats": [
+              "glb"
+            ]
+          },
+          "refineParameters": {
+            "mode": "refine",
+            "preview_task_id": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+            "ai_model": "meshy-6-lite",
+            "enable_pbr": true,
+            "texture_resolution": "2k",
+            "target_formats": [
+              "glb"
+            ],
+            "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Player weapon: navy steel with amber recoil and copper parts, cyan power details."
+          },
+          "providerReceipt": {
+            "preview": {
+              "id": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+              "status": "SUCCEEDED",
+              "created_at": 1793058586447,
+              "started_at": 1793058586451,
+              "finished_at": 1793058631626,
+              "consumed_credits": 5,
+              "task_error": null
+            },
+            "refine": {
+              "id": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+              "status": "SUCCEEDED",
+              "created_at": 1793058635294,
+              "started_at": 1793058635304,
+              "finished_at": 1793058685163,
+              "consumed_credits": 10,
+              "task_error": null
+            }
+          },
+          "processing": [
+            "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+            "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+            "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+          ],
+          "thumbnail": "assets/fleet/previews/tesla.png",
+          "geometryThumbnail": "assets/fleet/previews/tesla-geometry.png",
+          "sha256": "730b7213e102a69e287d4065c06799f35ef03086b82afb3aab8fb4f573bb7201"
+        }
+      }
+    ]
+  },
+  "generationBatches": [
+    {
+      "version": "v0.2",
+      "previewJobs": 8,
+      "refineJobs": 8,
+      "credits": 120,
+      "budgetCap": 160
+    },
+    {
+      "version": "v0.3",
+      "assetIds": [
+        "tesla",
+        "bomber"
+      ],
+      "previewJobs": 2,
+      "refineJobs": 2,
+      "credits": 30,
+      "budgetCap": 40,
+      "pricing": "Official docs checked before generation: meshy-6-lite standard preview5 + 2K PBR refine10 per actor."
+    }
+  ],
+  "activeAssetCredits": 135,
+  "accountingNote": "totalCredits/generationJobs include superseded v0.2 Tesla. Active asset totals include 9 shipping GLBs only. budgetCap160 is the original v0.2 authorization; v0.3 is separately capped40 in generationBatches."
 }

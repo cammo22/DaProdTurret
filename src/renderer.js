@@ -1,14 +1,90 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-export const FLEET_IDS = ['cannon', 'tesla', 'rail', 'skiff', 'frigate', 'armored', 'boss', 'submarine'];
-const DIMENSIONS = { cannon: 4.5, tesla: 4.5, rail: 5.1, skiff: 2.7, frigate: 4.1, armored: 4.7, boss: 8, submarine: 4 };
+export const FLEET_IDS = ['cannon', 'tesla', 'rail', 'skiff', 'frigate', 'armored', 'boss', 'submarine', 'bomber'];
+const DIMENSIONS = { cannon: 4.5, tesla: 4.5, rail: 5.1, skiff: 2.7, frigate: 4.1, armored: 4.7, boss: 8, submarine: 4, bomber: 6 };
 const BOAT_IDS = ['skiff', 'frigate', 'armored', 'boss', 'submarine'];
 const TAU = Math.PI * 2;
+
+// Analytic perspective fit, not an orthographic zoom masquerading as depth.
+// Bound the entire threat cylinder, including hull length and five-unit masts.
+// The hard fit floor deliberately wins over user zoom: no invisible enemies.
+export function createBattleCameraRig({ aspect = 1, radius = 27 } = {}) {
+  const camera = new THREE.PerspectiveCamera(43, aspect, .1, 700);
+  const elevation = 39 * Math.PI / 180, s = Math.sin(elevation), c = Math.cos(elevation);
+  let zoom = 1, crowd = 0;
+  function update() {
+    const v = Math.tan(camera.fov * Math.PI / 360) * .88;
+    const h = v * camera.aspect;
+    const horizontal = radius * Math.hypot(c, 1 / h) + 5 * s;
+    const vertical = radius * Math.hypot(c, s / v) + 5 * (s + c / v);
+    const fitted = Math.max(horizontal, vertical);
+    const breathingRoom = 1.08 + Math.min(1, Math.max(0, crowd - 5) / 25) * .10;
+    const distance = fitted * Math.max(1, breathingRoom / zoom);
+    camera.position.set(0, distance * s, distance * c);
+    camera.lookAt(0, 0, 0); camera.updateMatrixWorld(true);
+  }
+  function setZoom(value) {
+    if (Number.isFinite(value)) zoom = Math.max(.7, Math.min(1.4, value));
+    update(); return zoom;
+  }
+  function resize(value) {
+    if (Number.isFinite(value) && value > 0) camera.aspect = value;
+    camera.updateProjectionMatrix(); update();
+  }
+  function fit(options = {}) {
+    if (Number.isFinite(options.radius)) radius = Math.max(27, options.radius);
+    if (Number.isFinite(options.crowd)) crowd = Math.max(0, options.crowd);
+    update();
+  }
+  resize(aspect);
+  return { camera, resize, fit, setZoom,
+    adjustZoom(delta) { return setZoom(zoom + (Number.isFinite(delta) ? delta : 0)); },
+    resetZoom() { return setZoom(1); }, get zoom() { return zoom; },
+  };
+}
 
 export function visualAim(game, nearest) {
   const recent = game.lastShot?.manual && game.time - game.lastShot.time < .25;
   return game.charge || game.pendingManual || game.aim || (recent ? game.lastShot : nearest);
+}
+
+const flightForward = new THREE.Vector3(0, 0, 1), flightDirection = new THREE.Vector3();
+export function updateProjectilePose(object, projectile, fallbackHeight = .8) {
+  object.position.set(projectile.x, Number.isFinite(projectile.y) ? projectile.y : fallbackHeight, projectile.z);
+  flightDirection.set(projectile.vx ?? (projectile.tx ?? projectile.x) - projectile.x,
+    projectile.vy ?? 0, projectile.vz ?? (projectile.tz ?? projectile.z) - projectile.z);
+  if (flightDirection.lengthSq() < 1e-10) flightDirection.set(0, projectile.phase === 'ascent' ? 1 : projectile.kind === 'bomb' ? -1 : 0, 1e-6);
+  object.quaternion.setFromUnitVectors(flightForward, flightDirection.normalize());
+  return object;
+}
+export function updateAircraftPose(object, effect) {
+  const age = Math.max(0, Math.min(1, 1 - effect.ttl / Math.max(.001, effect.maxTtl || 3)));
+  const dx = effect.tx - effect.x, dz = effect.tz - effect.z;
+  object.position.set(effect.x + dx * age, effect.y ?? 14, effect.z + dz * age);
+  flightDirection.set(dx, 0, dz);
+  if (flightDirection.lengthSq() < 1e-10) flightDirection.copy(flightForward);
+  object.quaternion.setFromUnitVectors(flightForward, flightDirection.normalize());
+  return object;
+}
+
+// Camera-relative depth fog keeps the same danger-range visibility in portrait.
+export function environmentStyle(environment, distance, out = {}) {
+  const type = environment?.type || 'calm', storm = type === 'storm', fog = type === 'fog';
+  out.waveAmplitude = storm ? .38 : .085;
+  out.waveSpeed = storm ? 1.85 : type === 'current' ? 1.35 : 1;
+  out.rain = storm ? 1 : 0; out.current = type === 'current' ? 1 : 0;
+  const dx = out.current && Number.isFinite(environment.dx) ? environment.dx : .7;
+  const dz = out.current && Number.isFinite(environment.dz) ? environment.dz : -.4;
+  const length = Math.hypot(dx, dz) || 1;
+  out.flowX = dx / length; out.flowZ = dz / length;
+  out.sunIntensity = storm ? 1.35 : fog ? 2.3 : 3.6;
+  out.sky = storm ? 0x213d4e : fog ? 0x71949b : 0x0b4251;
+  out.fogColor = storm ? 0x395761 : fog ? 0x8ca9aa : 0x416b74;
+  out.fogNear = distance + (fog ? -25 : storm ? 10 : 55);
+  out.fogFar = distance + (fog ? 105 : storm ? 125 : 210);
+  out.haze = fog ? 1 : 0;
+  return out;
 }
 
 // Normalize once, clone many times. Meshy prototypes retain their PBR materials.
@@ -24,7 +100,7 @@ export function normalizeModel(source, id, config = {}) {
   else if (typeof config.rotationY === 'number') orient.rotation.y = config.rotationY;
   else {
     // Meshy boats are not guaranteed to share a longitudinal axis.
-    if (size.x > size.z * 1.15) orient.rotation.y = Math.PI / 2;
+    if (id !== 'bomber' && size.x > size.z * 1.15) orient.rotation.y = Math.PI / 2;
     if (config.forwardAxis === '-z' || config.forward === '-Z') orient.rotation.y += Math.PI;
   }
   prototype.updateMatrixWorld(true);
@@ -37,7 +113,7 @@ export function normalizeModel(source, id, config = {}) {
   prototype.updateMatrixWorld(true);
   bounds.setFromObject(prototype);
   const center = bounds.getCenter(new THREE.Vector3());
-  orient.position.set(-center.x, -bounds.min.y, -center.z);
+  orient.position.set(-center.x, id === 'bomber' ? -center.y : -bounds.min.y, -center.z);
   prototype.traverse(node => {
     if (!node.isMesh) return;
     node.castShadow = false; node.receiveShadow = false;
@@ -88,6 +164,7 @@ export async function preloadFleet({ manifestUrl = bundledManifestUrl(), baseUrl
     await acquire();
     try {
       const entry = Array.isArray(entries) ? entries.find(item => item.id === id || item.name === id) : entries[id];
+      if (id === 'bomber' && !entry) throw new Error('bomber: optional aircraft not bundled');
       if (entry?.status === 'failed' || entry?.available === false) throw new Error(`${id}: asset unavailable`);
       const gltf = await load(`${baseUrl}assets/fleet/${id}.glb`);
       const prototype = normalizeModel(gltf.scene || gltf, id, entry?.transform || entry || {});
@@ -100,15 +177,15 @@ export async function preloadFleet({ manifestUrl = bundledManifestUrl(), baseUrl
 export function createGameRenderer(container, { sound = () => {} } = {}) {
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b4251);
-  const camera = new THREE.OrthographicCamera(-30, 30, 30, -30, .1, 250);
-  camera.position.set(0, 45, 32); camera.lookAt(0, 0, 0);
+  scene.fog = new THREE.Fog(0x416b74, 100, 300);
+  const cameraRig = createBattleCameraRig(), camera = cameraRig.camera;
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2;
   renderer.domElement.setAttribute('aria-label', 'Difesa navale 3D');
   container.append(renderer.domElement);
-  scene.add(new THREE.HemisphereLight(0xd8f8ff, 0x153d48, 2.7));
+  const skyLight = new THREE.HemisphereLight(0xd8f8ff, 0x153d48, 2.7); scene.add(skyLight);
   const sun = new THREE.DirectionalLight(0xffdfb3, 3.6); sun.position.set(-16, 32, 20); scene.add(sun);
   const rim = new THREE.DirectionalLight(0x72ddea, 1.5); rim.position.set(12, 15, -16); scene.add(rim);
 
@@ -142,19 +219,60 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
   const cylinder = (p, material, x, y, z, radius, height) => mesh(p, geo.cylinder, material, x, y, z, radius, height, radius);
   const ring = (p, material, radius, y = .08) => { const r = mesh(p, geo.ring, material, 0, y, 0, radius, radius, radius); r.rotation.x = Math.PI / 2; return r; };
   const oceanMaterial = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 } },
-    vertexShader: `uniform float uTime; varying vec3 vWorld; varying float vWave;
-      void main(){ vec3 p=position; float w=sin(p.x*.39+uTime*.58)*cos(p.y*.31-uTime*.46)+sin(p.x*.15+p.y*.24+uTime*.4)*.5; p.z+=w*.085;vWave=w;vec4 world=modelMatrix*vec4(p,1.);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world; }`,
-    fragmentShader: `uniform float uTime; varying vec3 vWorld; varying float vWave;
-      void main(){vec2 p=vWorld.xz;float t=uTime;float broad=sin(p.x*.13+p.y*.17+t*.15)*.5+.5;
-        vec3 col=mix(vec3(.018,.16,.215),vec3(.035,.30,.34),broad*.65+vWave*.12+.15);
-        float crest=sin(p.x*1.8+p.y*.7+sin(p.y*.8+t*.4)*1.5-t*.85);
-        float foamLine=smoothstep(.94,.995,crest)*(.45+.35*sin(p.x*.21+p.y*.13+t*.2));
-        col+=foamLine*vec3(.045,.07,.065);col+=pow(max(0.,vWave*.56),5.)*.015;
-        float d=length(p);float foam=(sin(d*8.-t*1.7)*.5+.5)*smoothstep(3.8,3.,d)*smoothstep(2.4,3.,d);col+=foam*.14;
-        gl_FragColor=vec4(col,1.); }`,
+    uniforms: { uTime: { value: 0 }, uAmplitude: { value: .085 }, uSpeed: { value: 1 },
+      uFlow: { value: new THREE.Vector2(.868, -.496) }, uCurrent: { value: 0 }, uStorm: { value: 0 },
+      uFogColor: { value: scene.fog.color }, uFogNear: { value: 100 }, uFogFar: { value: 300 } },
+    vertexShader: `uniform float uTime,uAmplitude,uSpeed; uniform vec2 uFlow;
+      varying vec3 vWorld; varying float vWave,vDepth;
+      void main(){ vec3 p=position; vec2 q=vec2(p.x,-p.y)-uFlow*uTime*uSpeed;
+        float w=sin(q.x*.39)*cos(q.y*.31)+sin(q.x*.15+q.y*.24)*.5;
+        p.z+=w*uAmplitude;vWave=w;vec4 world=modelMatrix*vec4(p,1.);vWorld=world.xyz;
+        vec4 mv=viewMatrix*world;vDepth=-mv.z;gl_Position=projectionMatrix*mv; }`,
+    fragmentShader: `uniform float uTime,uSpeed,uCurrent,uStorm,uFogNear,uFogFar; uniform vec2 uFlow; uniform vec3 uFogColor;
+      varying vec3 vWorld; varying float vWave,vDepth;
+      void main(){vec2 p=vWorld.xz;float t=uTime*uSpeed;vec2 q=p-uFlow*t;
+        float broad=.5+sin(q.x*.13+q.y*.17)*cos(q.y*.19-q.x*.11)*.25;
+        vec3 col=mix(vec3(.006,.055,.085),vec3(.012,.12,.145),.4+broad*.35+vWave*.035);
+        float crest=sin(q.x*1.8+q.y*.7+sin(q.y*.8)*1.5+sin(q.x*.27+q.y*.32)*2.);
+        float patches=smoothstep(.25,.85,sin(q.x*.21+q.y*.13)*sin(q.x*.37-q.y*.29));
+        float foamLine=smoothstep(.97,.999,crest)*patches*.35;
+        col+=foamLine*vec3(.05,.09,.085)*(1.+uStorm*5.);
+        float sparkle=pow(max(0.,sin(q.x*.51+q.y*.36)*cos(q.y*.42)),20.);
+        col+=sparkle*vec3(.025,.045,.045)*(1.-uStorm*.5);
+        vec2 side=vec2(-uFlow.y,uFlow.x);
+        float streak=pow(max(0.,sin(dot(q,side)*2.7+sin(dot(q,uFlow)*.25))),18.);
+        col+=streak*uCurrent*vec3(.008,.027,.025)*(.65+.35*sin(dot(q,uFlow)*.2));
+        float d=length(p);float foam=(sin(d*8.-t*1.7)*.5+.5)*(1.-smoothstep(3.,3.8,d))*smoothstep(2.4,3.,d);col+=foam*.14;
+        col*=1.-uStorm*.2;col=mix(col,uFogColor,smoothstep(uFogNear,uFogFar,vDepth));
+        gl_FragColor=vec4(col,1.);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
   });
-  const ocean = mesh(scene, new THREE.PlaneGeometry(190, 190, 90, 90), oceanMaterial, 0, -.12, 0); ocean.rotation.x = -Math.PI / 2;
+  const ocean = mesh(scene, new THREE.PlaneGeometry(1000, 1000, 240, 240), oceanMaterial, 0, -.12, 0); ocean.rotation.x = -Math.PI / 2;
+  ocean.name = 'directional-ocean';
+  const hazeMaterial = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    uniforms: { uTime: { value: 0 }, uOpacity: { value: 0 }, uColor: { value: scene.fog.color } },
+    vertexShader: `varying vec3 vWorld;void main(){vec4 w=modelMatrix*vec4(position,1.);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+    fragmentShader: `uniform float uTime,uOpacity;uniform vec3 uColor;varying vec3 vWorld;
+      void main(){vec2 p=vWorld.xz;float wisps=sin(p.x*.14+p.y*.23+uTime*.08)*sin(p.y*.19-uTime*.06);
+        float edge=smoothstep(9.,25.,length(p))*(1.-smoothstep(48.,75.,length(p)));
+        gl_FragColor=vec4(uColor,uOpacity*edge*smoothstep(-.25,.8,wisps)*.19);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  const haze = mesh(scene, geo.plane, hazeMaterial, 0, .55, 0, 150, 150, 1); haze.rotation.x = -Math.PI / 2; haze.name = 'sea-mist-banks'; haze.visible = false;
+  const rainPositions = new Float32Array(240 * 6), rainSeeds = new Float32Array(240 * 3);
+  for (let i = 0; i < 240; i++) { rainSeeds[i * 3] = ((i * 17.31) % 70) - 35; rainSeeds[i * 3 + 1] = (i * 2.37) % 22; rainSeeds[i * 3 + 2] = ((i * 11.71) % 70) - 35; }
+  const rainGeometry = new THREE.BufferGeometry(); rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3).setUsage(THREE.DynamicDrawUsage));
+  const rain = new THREE.LineSegments(rainGeometry, new THREE.LineBasicMaterial({ color: 0xafced8, transparent: true, opacity: .32, depthWrite: false }));
+  rain.name = 'world-space-rain'; rain.frustumCulled = false; rain.visible = false; scene.add(rain);
+  const flowPositions = new Float32Array(48 * 18), flowGeometry = new THREE.BufferGeometry();
+  flowGeometry.setAttribute('position', new THREE.BufferAttribute(flowPositions, 3).setUsage(THREE.DynamicDrawUsage));
+  const flowLines = new THREE.LineSegments(flowGeometry, new THREE.LineBasicMaterial({ color: 0x91d7d1, transparent: true, opacity: .32, depthWrite: false }));
+  flowLines.name = 'current-flow-arrows'; flowLines.frustumCulled = false; flowLines.visible = false; scene.add(flowLines);
+  const environmentState = {};
   // Small hard-edged platform, not a second gun obscuring the imported model.
   const station = new THREE.Group(); station.name = 'station'; scene.add(station);
   cylinder(station, mat.dark, 0, .1, 0, 3.05, .55);
@@ -174,6 +292,19 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     const gun = new THREE.Group(); gun.name = `fallback-${id}`;
     cylinder(gun, mat.dark, 0, .42, 0, 1.1, .8);
     cylinder(gun, mat.amber, 0, .87, 0, 1.16, .12);
+    if (id === 'tesla') {
+      // A vertical industrial coil, never another cannon with glowing barrels.
+      cylinder(gun, mat.steel, 0, 1.1, 0, .65, .4);
+      cylinder(gun, mat.dark, 0, 1.95, 0, .3, 1.7);
+      for (let i = 0; i < 7; i++) ring(gun, i % 2 ? mat.amber : mat.edge, .7 - i * .035, 1.25 + i * .22);
+      const crown = mesh(gun, geo.ring, mat.cyan, 0, 2.95, 0, .9, .9, .9); crown.rotation.x = Math.PI / 2;
+      mesh(gun, geo.sphere, mat.cyan, 0, 2.95, 0, .35, .35, .35);
+      for (const x of [-.95, .95]) {
+        cylinder(gun, mat.edge, x, 1.8, 0, .09, 1.8);
+        const prong = box(gun, mat.amber, x * .8, 2.65, 0, .55, .12, .14); prong.rotation.z = x > 0 ? -.4 : .4;
+      }
+      return gun;
+    }
     box(gun, mat.steel, 0, 1.28, 0, 1.9, .8, 1.7);
     box(gun, mat.edge, 0, 1.75, -.1, 1.5, .14, 1.4);
     if (id === 'rail') {
@@ -181,9 +312,8 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
       box(gun, mat.amber, 0, 1.1, -.9, 1.1, .6, .8);
     } else {
       for (const x of [-.45, .45]) {
-        const barrel = cylinder(gun, mat.dark, x, 1.35, 1.6, id === 'tesla' ? .19 : .23, 2.8); barrel.rotation.x = Math.PI / 2;
-        if (id === 'tesla') for (let i = 0; i < 5; i++) { const coil = mesh(gun, geo.ring, i % 2 ? mat.cyan : mat.edge, x, 1.35, .6 + i * .45, .34, .34, .34); }
-        else { const collar = cylinder(gun, mat.edge, x, 1.35, 2.8, .31, .36); collar.rotation.x = Math.PI / 2; box(gun, mat.amber, x, 1.65, 1, .35, .07, 1.2); }
+        const barrel = cylinder(gun, mat.dark, x, 1.35, 1.6, .23, 2.8); barrel.rotation.x = Math.PI / 2;
+        const collar = cylinder(gun, mat.edge, x, 1.35, 2.8, .31, .36); collar.rotation.x = Math.PI / 2; box(gun, mat.amber, x, 1.65, 1, .35, .07, 1.2);
       }
     }
     return gun;
@@ -265,19 +395,9 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     if (weaponId === id) equip(id);
   } });
 
-  const seaEvents = new Map(), seaEventFree = [];
-  for (let i = 0; i < 8; i++) {
-    const root = new THREE.Group(); root.visible = false; scene.add(root);
-    cylinder(root, mat.dark, 0, .1, 0, .64, .3);
-    const cargo = box(root, mat.amber, 0, .52, 0, .8, .65, .8);
-    box(root, mat.edge, 0, .86, 0, .84, .07, .15);
-    box(root, mat.edge, 0, .86, 0, .15, .07, .84);
-    const beacon = ring(root, mat.cyan, .88, .04);
-    seaEventFree.push({ root, cargo, beacon, stamp: 0 });
-  }
 
   // Reusable vector/quaternion scratch space and pooled combat VFX.
-  const from = new THREE.Vector3(), to = new THREE.Vector3(), direction = new THREE.Vector3(), midpoint = new THREE.Vector3();
+  const from = new THREE.Vector3(), to = new THREE.Vector3(), direction = new THREE.Vector3();
   const up = new THREE.Vector3(0, 1, 0), scratch = new THREE.Object3D();
   function beam(object, ax, ay, az, bx, by, bz, width) {
     from.set(ax, ay, az); to.set(bx, by, bz); direction.subVectors(to, from);
@@ -287,11 +407,19 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     object.scale.set(width, Math.max(.001, length), width);
   }
   const effectFree = [], effectViews = new Map();
+  const fallbackBomber = new THREE.Group(); fallbackBomber.name = 'fallback-bomber';
+  mesh(fallbackBomber, geo.sphere, mat.steel, 0, 0, 0, .35, .3, 2.25);
+  box(fallbackBomber, mat.dark, 0, 0, -.05, 6, .13, 1.05);
+  box(fallbackBomber, mat.edge, 0, .18, -1.55, 2.3, .1, .65);
+  box(fallbackBomber, mat.amber, 0, .48, -1.6, .1, .9, .6);
+  mesh(fallbackBomber, geo.sphere, mat.cyan, 0, .23, 1.1, .26, .16, .5);
+  for (const x of [-1.45, 1.45]) mesh(fallbackBomber, geo.sphere, mat.dark, x, -.15, .2, .24, .25, .8);
   function makeEffectSlot() {
     const material = new THREE.MeshBasicMaterial({ color: 0xffcb78, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
     const softMaterial = material.clone(); softMaterial.opacity = .18;
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0xbaffff, transparent: true, depthWrite: false });
     const root = new THREE.Group(); root.visible = false; scene.add(root);
+    const aircraft = new THREE.Group(); aircraft.name = 'airstrike-bomber'; aircraft.visible = false; root.add(aircraft);
     const flash = mesh(root, geo.sphere, material);
     const wave = ring(root, material, 1);
     const core = mesh(root, geo.cylinder, material);
@@ -300,7 +428,7 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     const positions = new Float32Array(39);
     const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     const line = new THREE.Line(geometry, lineMaterial); line.frustumCulled = false; root.add(line);
-    return { root, flash, wave, core, halo, particles, line, material, softMaterial, lineMaterial, positions, stamp: 0, effect: null };
+    return { root, aircraft, aircraftPrototype: null, flash, wave, core, halo, particles, line, material, softMaterial, lineMaterial, positions, stamp: 0, effect: null };
   }
   for (let i = 0; i < 72; i++) effectFree.push(makeEffectSlot());
   const projectileFree = [], projectileViews = new Map();
@@ -315,7 +443,7 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     const trail = new THREE.Line(geometry, material); trail.frustumCulled = false; trail.visible = false; scene.add(trail);
     return { root, head, body, flame, trail, positions, material, stamp: 0, fresh: true, initialTtl: 0 };
   }
-  for (let i = 0; i < 192; i++) projectileFree.push(makeProjectileSlot());
+  for (let i = 0; i < 256; i++) projectileFree.push(makeProjectileSlot());
   const reticle = new THREE.Group(); scene.add(reticle); reticle.visible = false;
   const reticleMaterial = new THREE.MeshBasicMaterial({ color: 0xffdb92, transparent: true, opacity: .8, depthWrite: false });
   ring(reticle, reticleMaterial, .65, .06);
@@ -332,11 +460,7 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
   let width = 1, height = 1, left = 0, top = 0;
   function resize() {
     const rect = container.getBoundingClientRect(); width = rect.width; height = rect.height; left = rect.left; top = rect.top;
-    const aspect = width / Math.max(1, height);
-    // All spawns remain on screen in either orientation. No cropped threats.
-    const halfHeight = Math.max(20, 24 / Math.max(.1, aspect));
-    camera.left = -halfHeight * aspect; camera.right = halfHeight * aspect;
-    camera.top = halfHeight; camera.bottom = -halfHeight; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+    cameraRig.resize(width / Math.max(1, height));
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.setSize(width, height, false);
   }
   const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(container); resize();
@@ -353,7 +477,7 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     unprojectedPoint.x = seaPoint.x; unprojectedPoint.z = seaPoint.z;
     return unprojectedPoint;
   }
-  let time = 0, stamp = 0, recoil = 0, shake = 0, wasCharging = false;
+  let time = 0, stamp = 0, recoil = 0, wasCharging = false;
   function updateEffect(view, effect) {
     const life = Math.max(0, Math.min(1, effect.ttl / (effect.maxTtl || .3))), age = 1 - life;
     const kind = effect.kind;
@@ -363,14 +487,35 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     view.softMaterial.color.copy(view.material.color);
     view.material.opacity = life; view.softMaterial.opacity = life * .2; view.lineMaterial.opacity = life;
     view.root.position.set(0, 0, 0); view.root.scale.setScalar(1);
-    view.flash.visible = false; view.wave.visible = false; view.core.visible = false; view.halo.visible = false; view.particles.visible = false; view.line.visible = false;
+    view.aircraft.visible = false; view.flash.visible = false; view.wave.visible = false; view.core.visible = false; view.halo.visible = false; view.particles.visible = false; view.line.visible = false;
     const x = effect.x || 0, z = effect.z || 0, tx = effect.tx ?? x, tz = effect.tz ?? z;
-    if (kind === 'rail') {
+    if (kind === 'aircraft') {
+      const prototype = models.get('bomber') || fallbackBomber;
+      if (view.aircraftPrototype !== prototype) {
+        if (models.has('bomber')) replaceActorModel(view.aircraft, prototype, 'bomber');
+        else { view.aircraft.clear(); view.aircraft.add(prototype.clone(true)); view.aircraft.userData.meshyAssetId = null; }
+        view.aircraftPrototype = prototype;
+      }
+      view.aircraft.visible = true; updateAircraftPose(view.aircraft, effect);
+    } else if (kind === 'rail') {
       view.core.visible = true; view.halo.visible = true; view.flash.visible = true;
       beam(view.core, x, 2.2, z, tx, .5, tz, .12 + life * .14);
       beam(view.halo, x, 2.2, z, tx, .5, tz, .45 + age * .5);
       view.flash.position.set(x, 2.2, z); view.flash.scale.setScalar(.4 + life * 1.1);
+    } else if (kind === 'lightning') {
+      // World-space cloud-to-sea strike: no fullscreen flash or camera shake.
+      view.line.visible = true; view.lineMaterial.color.setHex(0xd9f8ff);
+      for (let i = 0; i <= 12; i++) {
+        const a = i / 12, jitter = i === 12 ? 0 : Math.sin(i * 7.8 + effect.id) * .65;
+        view.positions[i * 3] = x + jitter;
+        view.positions[i * 3 + 1] = 20 * (1 - a) + .4;
+        view.positions[i * 3 + 2] = z + jitter * .4;
+      }
+      view.line.geometry.attributes.position.needsUpdate = true;
+      view.flash.visible = true; view.flash.position.set(x, .5, z); view.flash.scale.setScalar(.55 * life);
+      view.material.color.setHex(0xbfeeff);
     } else if (kind === 'tesla' || kind === 'stun') {
+      view.lineMaterial.color.setHex(0xbaffff);
       view.line.visible = true;
       const y = Math.hypot(x, z) < 3 ? 2.2 : 1;
       for (let i = 0; i <= 12; i++) {
@@ -381,6 +526,9 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
       }
       view.line.geometry.attributes.position.needsUpdate = true;
       view.flash.visible = true; view.flash.position.set(tx, .8, tz); view.flash.scale.setScalar(.2 + life * .3);
+    } else if (kind === 'bomb') {
+      // A release glint at flight altitude, not a premature sea-level impact.
+      view.flash.visible = true; view.flash.position.set(x, 14, z); view.flash.scale.setScalar(.16 * life);
     } else if (kind === 'muzzle' || kind === 'missile-launch') {
       view.flash.visible = true;
       const angle = turretPivot.rotation.y;
@@ -410,23 +558,51 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
   function render(game, dt) {
     if (document.hidden) return;
     stamp++; if (!reducedMotion) time += dt;
+    let threatRadius = 27;
+    for (const enemy of game.enemies) threatRadius = Math.max(threatRadius, Math.hypot(enemy.x, enemy.z) + (DIMENSIONS[enemy.type] || 4) * .55);
+    cameraRig.fit({ radius: threatRadius, crowd: game.enemies.length });
+    const env = environmentStyle(game.environment, camera.position.length(), environmentState);
+    scene.background.setHex(env.sky); scene.fog.color.setHex(env.fogColor);
+    scene.fog.near = env.fogNear; scene.fog.far = env.fogFar;
+    sun.intensity = env.sunIntensity; skyLight.intensity = env.rain ? 2 : 2.7;
+    rim.intensity = env.rain ? 1.8 : 1.5;
+    oceanMaterial.uniforms.uAmplitude.value = env.waveAmplitude;
+    oceanMaterial.uniforms.uSpeed.value = env.waveSpeed;
+    oceanMaterial.uniforms.uFlow.value.set(env.flowX, env.flowZ);
+    oceanMaterial.uniforms.uCurrent.value = env.current;
+    oceanMaterial.uniforms.uStorm.value = env.rain;
+    oceanMaterial.uniforms.uFogNear.value = env.fogNear;
+    oceanMaterial.uniforms.uFogFar.value = env.fogFar;
     oceanMaterial.uniforms.uTime.value = time;
-    equip(game.weapon);
-    for (const event of game.events) {
-      let view = seaEvents.get(event.id);
-      if (!view) {
-        view = seaEventFree.pop(); if (!view) continue;
-        view.root.name = `sea-event-${event.id}`; view.root.visible = true;
-        view.cargo.material = event.type === 'repair' || event.type === 'supply' ? mat.cyan : mat.amber;
-        seaEvents.set(event.id, view);
+    haze.visible = !!env.haze; hazeMaterial.uniforms.uOpacity.value = env.haze; hazeMaterial.uniforms.uTime.value = time;
+    rain.visible = !!env.rain && !reducedMotion;
+    if (rain.visible) {
+      for (let i = 0; i < 240; i++) {
+        const k = i * 6, seed = i * 3;
+        const y = 22 - (rainSeeds[seed + 1] + time * 22) % 22;
+        const x = rainSeeds[seed] + y * .2, z = rainSeeds[seed + 2];
+        rainPositions[k] = x; rainPositions[k + 1] = y; rainPositions[k + 2] = z;
+        rainPositions[k + 3] = x - .3; rainPositions[k + 4] = y - 1.5; rainPositions[k + 5] = z - .12;
       }
-      view.stamp = stamp;
-      view.root.position.set(event.x, reducedMotion ? 0 : Math.sin(time * 2.5 + event.id) * .08, event.z);
-      view.beacon.rotation.z = time * .6;
+      rainGeometry.attributes.position.needsUpdate = true;
     }
-    for (const [id, view] of seaEvents) if (view.stamp !== stamp) {
-      view.root.visible = false; view.root.name = ''; seaEvents.delete(id); seaEventFree.push(view);
+    flowLines.visible = !!env.current;
+    if (flowLines.visible) {
+      const dx = env.flowX, dz = env.flowZ;
+      for (let i = 0; i < 48; i++) {
+        const k = i * 18, x = (((i * 17.71 + dx * time * 2) % 72) + 72) % 72 - 36;
+        const z = (((i * 11.13 + dz * time * 2) % 72) + 72) % 72 - 36;
+        // Three sea-plane segments: a streak with a small directional chevron.
+        flowPositions[k] = x - dx * 2; flowPositions[k + 1] = .16; flowPositions[k + 2] = z - dz * 2;
+        flowPositions[k + 3] = x; flowPositions[k + 4] = .16; flowPositions[k + 5] = z;
+        flowPositions[k + 6] = x - dx * .5 - dz * .28; flowPositions[k + 7] = .16; flowPositions[k + 8] = z - dz * .5 + dx * .28;
+        flowPositions[k + 9] = x; flowPositions[k + 10] = .16; flowPositions[k + 11] = z;
+        flowPositions[k + 12] = x - dx * .5 + dz * .28; flowPositions[k + 13] = .16; flowPositions[k + 14] = z - dz * .5 - dx * .28;
+        flowPositions[k + 15] = x; flowPositions[k + 16] = .16; flowPositions[k + 17] = z;
+      }
+      flowGeometry.attributes.position.needsUpdate = true;
     }
+    equip(game.weapon);
     let nearest = null, nearestDistance = Infinity;
     for (const enemy of game.enemies) {
       let view = enemyViews.get(enemy.id);
@@ -436,9 +612,9 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
         view.body.position.y = 0; enemyViews.set(enemy.id, view); scene.add(view.root);
       }
       view.stamp = stamp; setActorModel(view);
-      view.root.position.set(enemy.x, reducedMotion ? 0 : Math.sin(time * 2 + enemy.id) * .035, enemy.z);
+      view.root.position.set(enemy.x, reducedMotion ? 0 : Math.sin(time * 2 + enemy.id) * (.035 + env.rain * .14), enemy.z);
       view.root.rotation.y = Math.atan2(-enemy.x, -enemy.z);
-      view.root.rotation.z = reducedMotion || enemy.stunnedFor > 0 ? 0 : Math.sin(time * 1.4 + enemy.id) * .018;
+      view.root.rotation.z = reducedMotion || enemy.stunnedFor > 0 ? 0 : Math.sin(time * 1.4 + enemy.id) * (.018 + env.rain * .045);
       const targetDepth = enemy.submerged ? -2.4 : 0;
       view.body.position.y += (targetDepth - view.body.position.y) * Math.min(1, Math.max(.08, dt * 4));
       view.silhouette.visible = !!enemy.submerged;
@@ -464,6 +640,9 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
     reticle.visible = !!marker;
     if (marker) reticle.position.set(marker.x, .03, marker.z);
     for (const projectile of game.projectiles) {
+      // The engine aircraft projectile drives bomb timing; its companion effect
+      // owns the pooled aircraft mesh. Never draw a second bullet-shaped plane.
+      if (projectile.kind === 'aircraft') continue;
       let view = projectileViews.get(projectile.id);
       if (!view) {
         view = projectileFree.pop(); if (!view) continue;
@@ -472,18 +651,18 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
       }
       view.stamp = stamp;
       const kind = projectile.kind;
-      const missile = kind === 'missile', torpedo = kind === 'torpedo', enemyShot = kind === 'enemy-shell', tesla = kind === 'tesla-orb';
+      const missile = kind === 'missile', bomb = kind === 'bomb', torpedo = kind === 'torpedo', enemyShot = kind === 'enemy-shell', tesla = kind === 'tesla-orb';
       const progress = 1 - projectile.ttl / Math.max(.001, view.initialTtl);
       let y = torpedo ? .08 : missile ? .85 : tesla ? 1.5 : .5 + Math.sin(Math.min(1, progress * 2) * Math.PI) * 1.5;
       if (!enemyShot && !missile && !torpedo && !tesla) y += Math.max(0, 1 - Math.hypot(projectile.x, projectile.z) / 5) * 1.7;
-      view.root.position.set(projectile.x, y, projectile.z);
-      view.root.rotation.y = Math.atan2(projectile.vx || projectile.tx - projectile.x, projectile.vz || projectile.tz - projectile.z);
+      updateProjectilePose(view.root, projectile, y); y = view.root.position.y;
       view.head.material = enemyShot || torpedo ? mat.redLight : tesla ? mat.cyan : missile ? mat.edge : mat.orange;
       view.head.scale.setScalar(tesla ? .22 : enemyShot ? .2 : .15); view.head.scale.z *= 2;
-      view.body.visible = missile || torpedo; view.flame.visible = missile;
-      view.body.material = torpedo ? mat.dark : mat.edge;
+      view.body.visible = missile || bomb || torpedo; view.flame.visible = missile;
+      view.root.scale.setScalar(bomb ? 1.7 : 1);
+      view.body.material = torpedo || bomb ? mat.dark : mat.edge;
       if (missile) view.flame.scale.y = .5 + Math.sin(time * 45) * .15;
-      view.trail.visible = missile || torpedo || enemyShot || tesla;
+      view.trail.visible = missile || bomb || torpedo || enemyShot || tesla;
       view.material.color.setHex(torpedo ? 0xc4eee5 : enemyShot ? 0xff7751 : tesla ? 0x77ffff : 0xffdb9a);
       if (view.fresh) { for (let i = 0; i < 10; i++) { view.positions[i * 3] = projectile.x; view.positions[i * 3 + 1] = y; view.positions[i * 3 + 2] = projectile.z; } view.fresh = false; }
       else { view.positions.copyWithin(3, 0, 27); view.positions[0] = projectile.x; view.positions[1] = y; view.positions[2] = projectile.z; }
@@ -497,7 +676,7 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
         view = effectFree.pop(); if (!view) continue;
         view.root.visible = true; view.effect = effect; effectViews.set(effect.id, view);
         if (effect.kind === 'muzzle' && Math.hypot(effect.x || 0, effect.z || 0) < 3) recoil = Math.max(recoil, .32);
-        if (effect.kind === 'rail') { recoil = .9; if (!reducedMotion) shake = .22; }
+        if (effect.kind === 'rail') recoil = .9;
         sound(effect.kind);
       }
       view.stamp = stamp; updateEffect(view, effect);
@@ -520,18 +699,18 @@ export function createGameRenderer(container, { sound = () => {} } = {}) {
       beam(chargeLine, x, 2.2, z, charge.x, .15, charge.z, .018 + p * .018);
     }
     wasCharging = !!game.charge;
-    if (shake > .001 && !reducedMotion) { shake *= Math.exp(-dt * 12); camera.position.x = Math.sin(time * 70) * shake; camera.position.y = 45 + Math.cos(time * 65) * shake; camera.updateMatrixWorld(); }
-    else if (camera.position.x !== 0 || camera.position.y !== 45) { camera.position.set(0, 45, 32); camera.updateMatrixWorld(); }
+    // Keep aiming and HUD anchors stable. Impact energy stays in world-space VFX.
     renderer.render(scene, camera);
   }
   function reset() {
-    for (const view of seaEvents.values()) { view.root.visible = false; view.root.name = ''; seaEventFree.push(view); }
-    seaEvents.clear();
     for (const view of enemyViews.values()) { scene.remove(view.root); enemyFree.get(view.type)?.push(view); }
     enemyViews.clear();
     for (const view of effectViews.values()) { view.root.visible = false; effectFree.push(view); } effectViews.clear();
     for (const view of projectileViews.values()) { view.root.visible = false; view.trail.visible = false; projectileFree.push(view); } projectileViews.clear();
-    recoil = 0; shake = 0; wasCharging = false;
+    recoil = 0; wasCharging = false; reticle.visible = false; chargeGroup.visible = false; chargeLine.visible = false;
+    cameraRig.fit({ radius: 27, crowd: 0 }); cameraRig.resetZoom();
   }
-  return { renderer, scene, camera, assetsReady, render, reset, project, unproject, resize, get models() { return models; } };
+  return { renderer, scene, camera, assetsReady, render, reset, project, unproject, resize,
+    setZoom: cameraRig.setZoom, adjustZoom: cameraRig.adjustZoom, resetZoom: cameraRig.resetZoom,
+    get zoom() { return cameraRig.zoom; }, cameraMode: 'perspective', get models() { return models; } };
 }
