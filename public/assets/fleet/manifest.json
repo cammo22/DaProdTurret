@@ -1,0 +1,654 @@
+{
+  "assets": {
+    "cannon": {
+      "file": "assets/fleet/cannon.glb",
+      "taskId": "01a17a9f-7777-7143-b458-cdac488fdf50",
+      "previewTaskId": "01a17a9e-b8e2-7352-bcbe-c9859deadaeb",
+      "refineTaskId": "01a17a9f-7777-7143-b458-cdac488fdf50",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 2460,
+      "bytes": 643496,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.4164929986000061,
+          -0.09976000338792801,
+          -0.8348600268363953
+        ],
+        "max": [
+          0.4129050076007843,
+          0.4086189866065979,
+          0.951104998588562
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TURRET HEAD ONLY, NO BASE, NO PLATFORM. Compact broad armored gun breech with one thick long recoil cannon barrel, pronounced open circular muzzle, rear counterweight, orange recoil sleeve. Separate head ready to mount on an existing turret pad.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TURRET HEAD ONLY, NO BASE, NO PLATFORM. Compact broad armored gun breech with one thick long recoil cannon barrel, pronounced open circular muzzle, rear counterweight, orange recoil sleeve. Separate head ready to mount on an existing turret pad.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e2-7352-bcbe-c9859deadaeb",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Player weapon: navy steel with amber recoil and copper parts, cyan power details."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e2-7352-bcbe-c9859deadaeb",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586784,
+          "started_at": 1793058586788,
+          "finished_at": 1793058624920,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-7777-7143-b458-cdac488fdf50",
+          "status": "SUCCEEDED",
+          "created_at": 1793058635031,
+          "started_at": 1793058635037,
+          "finished_at": 1793058696100,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Removed generated circular platform and fixed lower plinth below y=-0.10; turret head is independent.",
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/cannon.png",
+      "geometryThumbnail": "assets/fleet/previews/cannon-geometry.png",
+      "sha256": "0c298293dbc7917b58cbb95d307d34c5aafeded7aea69d2a2243f6138fba95ca"
+    },
+    "tesla": {
+      "file": "assets/fleet/tesla.glb",
+      "taskId": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+      "previewTaskId": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+      "refineTaskId": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 4101,
+      "bytes": 658516,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.5594130158424377,
+          -0.9512689709663391,
+          -0.4042010009288788
+        ],
+        "max": [
+          0.5554739832878113,
+          0.9461420178413391,
+          0.4021109938621521
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TESLA TURRET HEAD ONLY, NO BASE, NO PLATFORM. Bold vertical stacked copper toroidal coils, squat steel mounting head, two curved conductive prongs enclosing a cyan energy core. Elegant industrial electric weapon, not a cannon.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING TESLA TURRET HEAD ONLY, NO BASE, NO PLATFORM. Bold vertical stacked copper toroidal coils, squat steel mounting head, two curved conductive prongs enclosing a cyan energy core. Elegant industrial electric weapon, not a cannon.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Player weapon: navy steel with amber recoil and copper parts, cyan power details."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e2-7493-b234-bac4ddea1743",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586447,
+          "started_at": 1793058586451,
+          "finished_at": 1793058631626,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-769b-7581-b9ca-0839091e30d7",
+          "status": "SUCCEEDED",
+          "created_at": 1793058635294,
+          "started_at": 1793058635304,
+          "finished_at": 1793058685163,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/tesla.png",
+      "geometryThumbnail": "assets/fleet/previews/tesla-geometry.png",
+      "sha256": "730b7213e102a69e287d4065c06799f35ef03086b82afb3aab8fb4f573bb7201"
+    },
+    "rail": {
+      "file": "assets/fleet/rail.glb",
+      "taskId": "01a17a9f-766f-7179-bd16-3bcffe36680c",
+      "previewTaskId": "01a17a9e-b8e2-7411-8775-1af74f111436",
+      "refineTaskId": "01a17a9f-766f-7179-bd16-3bcffe36680c",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 2452,
+      "bytes": 503988,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.35918301343917847,
+          -0.27747300267219543,
+          -0.9483199715614319
+        ],
+        "max": [
+          0.35576701164245605,
+          0.3720700144767761,
+          1.1189604102151107
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING RAILGUN TURRET HEAD ONLY, NO BASE, NO PLATFORM. Two very long parallel separated accelerator rails with a clearly visible open gap, cyan inlaid rail channels, compact armored rear breech and amber collar. Futuristic precision naval weapon.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. ROTATING RAILGUN TURRET HEAD ONLY, NO BASE, NO PLATFORM. Two very long parallel separated accelerator rails with a clearly visible open gap, cyan inlaid rail channels, compact armored rear breech and amber collar. Futuristic precision naval weapon.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e2-7411-8775-1af74f111436",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Player weapon: navy steel with amber recoil and copper parts, cyan power details."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e2-7411-8775-1af74f111436",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586189,
+          "started_at": 1793058586195,
+          "finished_at": 1793058620831,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-766f-7179-bd16-3bcffe36680c",
+          "status": "SUCCEEDED",
+          "created_at": 1793058634677,
+          "started_at": 1793058634682,
+          "finished_at": 1793058703245,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Reassembled two detached Meshy-generated rails onto breech and removed original solid muzzle; twin open-gap rail silhouette. Original generated UVs retained.",
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/rail.png",
+      "geometryThumbnail": "assets/fleet/previews/rail-geometry.png",
+      "sha256": "0754225c3b7ac5f14e9d1b5b630b989f7c071d56bffac1e679be92733502c127"
+    },
+    "skiff": {
+      "file": "assets/fleet/skiff.glb",
+      "taskId": "01a17a9f-7779-74e7-b5eb-205a32b4e17e",
+      "previewTaskId": "01a17a9e-b8e1-70ef-a163-499582b3f427",
+      "refineTaskId": "01a17a9f-7779-74e7-b5eb-205a32b4e17e",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 3974,
+      "bytes": 563540,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.30821099877357483,
+          -0.2174990028142929,
+          -0.9471160173416138
+        ],
+        "max": [
+          0.3048799932003021,
+          0.20934900641441345,
+          0.9502310156822205
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Fast enemy patrol skiff, narrow pointed boat hull with low open cockpit, small angular windscreen, two stern engines, low forward machine gun. Rust red hull panels and dark navy steel, amber trim, tiny cyan lights. Strong speedboat silhouette.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Fast enemy patrol skiff, narrow pointed boat hull with low open cockpit, small angular windscreen, two stern engines, low forward machine gun. Rust red hull panels and dark navy steel, amber trim, tiny cyan lights. Strong speedboat silhouette.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e1-70ef-a163-499582b3f427",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Rust red enemy hull armor and navy deck."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e1-70ef-a163-499582b3f427",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586471,
+          "started_at": 1793058586475,
+          "finished_at": 1793058622172,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-7779-74e7-b5eb-205a32b4e17e",
+          "status": "SUCCEEDED",
+          "created_at": 1793058635153,
+          "started_at": 1793058635179,
+          "finished_at": 1793058667492,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/skiff.png",
+      "geometryThumbnail": "assets/fleet/previews/skiff-geometry.png",
+      "sha256": "b514118fb68cf84e88215315aad177bf9da4ce35d94a2e404c2d5368acebf5ee"
+    },
+    "frigate": {
+      "file": "assets/fleet/frigate.glb",
+      "taskId": "01a17a9f-767b-73f7-84ec-22887c0375ed",
+      "previewTaskId": "01a17a9e-b8e3-764a-8a91-4d1f57d73221",
+      "refineTaskId": "01a17a9f-767b-73f7-84ec-22887c0375ed",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 4018,
+      "bytes": 728780,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.22000859677791595,
+          -0.27881500124931335,
+          -0.9472450017929077
+        ],
+        "max": [
+          0.2120489940047264,
+          0.27584001421928406,
+          0.9516379833221436
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Enemy military frigate warship with elongated pointed hull, a clearly visible big forward deck cannon, raised angular bridge amidships, radar mast, aft exhaust. Rust red hull, dark navy steel decks, amber highlights and cyan windows. Recognizable detailed naval silhouette.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Enemy military frigate warship with elongated pointed hull, a clearly visible big forward deck cannon, raised angular bridge amidships, radar mast, aft exhaust. Rust red hull, dark navy steel decks, amber highlights and cyan windows. Recognizable detailed naval silhouette.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e3-764a-8a91-4d1f57d73221",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Rust red enemy hull armor and navy deck."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e3-764a-8a91-4d1f57d73221",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586368,
+          "started_at": 1793058586372,
+          "finished_at": 1793058618541,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-767b-73f7-84ec-22887c0375ed",
+          "status": "SUCCEEDED",
+          "created_at": 1793058634733,
+          "started_at": 1793058634740,
+          "finished_at": 1793058660643,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Widened generated narrow hull across beam for overhead gameplay readability.",
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/frigate.png",
+      "geometryThumbnail": "assets/fleet/previews/frigate-geometry.png",
+      "sha256": "6e3c68a29e1ec81a01ddf2e87e65bb01200aa06df3b302b3edee2190e20053cd"
+    },
+    "armored": {
+      "file": "assets/fleet/armored.glb",
+      "taskId": "01a17a9f-77cb-7499-92a0-2aab50c669d6",
+      "previewTaskId": "01a17a9e-b8e2-7491-b112-a32969c92bbf",
+      "refineTaskId": "01a17a9f-77cb-7499-92a0-2aab50c669d6",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 3884,
+      "bytes": 618428,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.25705501437187195,
+          -0.4170460104942322,
+          -0.9474570155143738
+        ],
+        "max": [
+          0.2536120116710663,
+          0.40744900703430176,
+          0.9501309990882874
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Enemy heavy armored assault boat, broad blunt wedge-shaped armored hull with sloped side plating, chunky central gun turret with broad cannon muzzle, armored cabin, twin stern engines. Rust red armor, steel deck, amber warning trims, cyan viewports.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Enemy heavy armored assault boat, broad blunt wedge-shaped armored hull with sloped side plating, chunky central gun turret with broad cannon muzzle, armored cabin, twin stern engines. Rust red armor, steel deck, amber warning trims, cyan viewports.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e2-7491-b112-a32969c92bbf",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Rust red enemy hull armor and navy deck."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e2-7491-b112-a32969c92bbf",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586920,
+          "started_at": 1793058586927,
+          "finished_at": 1793058626618,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-77cb-7499-92a0-2aab50c669d6",
+          "status": "SUCCEEDED",
+          "created_at": 1793058635217,
+          "started_at": 1793058635224,
+          "finished_at": 1793058674850,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/armored.png",
+      "geometryThumbnail": "assets/fleet/previews/armored-geometry.png",
+      "sha256": "9c7da55861e9f7ac3a8b270598db833083f2444f5f1cd0bf1b78125763ce57dd"
+    },
+    "boss": {
+      "file": "assets/fleet/boss.glb",
+      "taskId": "01a17a9f-767b-73f9-b45f-e15a2eccd6bc",
+      "previewTaskId": "01a17a9e-b8e1-7425-8e7d-b3180e0b96d9",
+      "refineTaskId": "01a17a9f-767b-73f9-b45f-e15a2eccd6bc",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 3911,
+      "bytes": 779536,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.2384825050830841,
+          -0.27314499020576477,
+          -0.945917010307312
+        ],
+        "max": [
+          0.22699499502778053,
+          0.22851000726222992,
+          0.9535199999809265
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Very large enemy boss battleship, powerful long pointed heavy warship hull, THREE massive triple-barrel naval gun turrets on deck, towering stepped bridge and radar mast, funnels, layered rust red steel armor, amber hazard accents and cyan bridge windows. Epic coherent battleship silhouette.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Very large enemy boss battleship, powerful long pointed heavy warship hull, THREE massive triple-barrel naval gun turrets on deck, towering stepped bridge and radar mast, funnels, layered rust red steel armor, amber hazard accents and cyan bridge windows. Epic coherent battleship silhouette.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e1-7425-8e7d-b3180e0b96d9",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Rust red enemy hull armor and navy deck."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e1-7425-8e7d-b3180e0b96d9",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586341,
+          "started_at": 1793058586346,
+          "finished_at": 1793058630694,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-767b-73f9-b45f-e15a2eccd6bc",
+          "status": "SUCCEEDED",
+          "created_at": 1793058634984,
+          "started_at": 1793058634990,
+          "finished_at": 1793058654810,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Widened generated narrow hull across beam for overhead gameplay readability.",
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/boss.png",
+      "geometryThumbnail": "assets/fleet/previews/boss-geometry.png",
+      "sha256": "20856646a710321493f731f50b08f77920dd50b7f7e38b6c76acd84be828d71d"
+    },
+    "submarine": {
+      "file": "assets/fleet/submarine.glb",
+      "taskId": "01a17a9f-7689-73cc-b2cd-8eabae6fd1f9",
+      "previewTaskId": "01a17a9e-b8e2-7413-a74a-452c79c4cdee",
+      "refineTaskId": "01a17a9f-7689-73cc-b2cd-8eabae6fd1f9",
+      "model": "meshy-6-lite",
+      "status": "SUCCEEDED",
+      "triangles": 4008,
+      "bytes": 642672,
+      "credits": 15,
+      "previewCredits": 5,
+      "refineCredits": 10,
+      "axisNote": "+Y up; +Z muzzle/bow forward, baked into geometry. Recenter/scale using bounds; origin is not an articulation pivot.",
+      "bounds": {
+        "min": [
+          -0.15208399295806885,
+          -0.26146799325942993,
+          -0.9499689936637878
+        ],
+        "max": [
+          0.14877699315547943,
+          0.2567330002784729,
+          0.9502310156822205
+        ]
+      },
+      "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Enemy submarine, unmistakable long cigar-shaped dark steel pressure hull, pointed bow, rear propeller and tail fins, raised conning tower with tall thin periscope, small cyan viewports, rust red side armor panels and amber bands. One submarine only.",
+      "previewParameters": {
+        "mode": "preview",
+        "prompt": "Stylized naval arcade game asset, attractive chunky readable silhouette, beveled hard-surface armor, dark navy steel, amber trims, cyan technical details. Single isolated object, no scenery, no water, no text, no people. Y up, front points positive Z. Enemy submarine, unmistakable long cigar-shaped dark steel pressure hull, pointed bow, rear propeller and tail fins, raised conning tower with tall thin periscope, small cyan viewports, rust red side armor panels and amber bands. One submarine only.",
+        "model_type": "standard",
+        "ai_model": "meshy-6-lite",
+        "geometry_resolution": "standard",
+        "should_remesh": true,
+        "topology": "triangle",
+        "target_polycount": 4000,
+        "target_formats": [
+          "glb"
+        ]
+      },
+      "refineParameters": {
+        "mode": "refine",
+        "preview_task_id": "01a17a9e-b8e2-7413-a74a-452c79c4cdee",
+        "ai_model": "meshy-6-lite",
+        "enable_pbr": true,
+        "texture_resolution": "2k",
+        "target_formats": [
+          "glb"
+        ],
+        "texture_prompt": "Coherent stylized naval arcade game. Dark navy blue steel, crisp amber yellow trim, luminous cyan technical details, clean readable painted armor. Rust red enemy hull armor and navy deck."
+      },
+      "providerReceipt": {
+        "preview": {
+          "id": "01a17a9e-b8e2-7413-a74a-452c79c4cdee",
+          "status": "SUCCEEDED",
+          "created_at": 1793058586355,
+          "started_at": 1793058586359,
+          "finished_at": 1793058617062,
+          "consumed_credits": 5,
+          "task_error": null
+        },
+        "refine": {
+          "id": "01a17a9f-7689-73cc-b2cd-8eabae6fd1f9",
+          "status": "SUCCEEDED",
+          "created_at": 1793058634875,
+          "started_at": 1793058634880,
+          "finished_at": 1793058710830,
+          "consumed_credits": 10,
+          "task_error": null
+        }
+      },
+      "processing": [
+        "Baked +Y up and +Z muzzle/bow forward into positions and normals (original bow/muzzle -X; Tesla face already +Z).",
+        "Embedded provider-generated 2K PBR images resized to 1024px JPEG quality86; no external image/buffer references, no Draco/KTX decoder.",
+        "Triangle vertex repack; positions/UVs retained except documented silhouette cleanup."
+      ],
+      "thumbnail": "assets/fleet/previews/submarine.png",
+      "geometryThumbnail": "assets/fleet/previews/submarine-geometry.png",
+      "sha256": "74d7bce0958cfb1af97071462ad0d4885daef26c13ef03c1cf2c742cd8e0fc34"
+    }
+  },
+  "totalCredits": 120,
+  "budgetCap": 160,
+  "generationJobs": 16,
+  "previewJobs": 8,
+  "refineJobs": 8,
+  "provider": "Meshy",
+  "documentation": [
+    "https://docs.meshy.ai/en/api/text-to-3d",
+    "https://docs.meshy.ai/en/api/pricing"
+  ],
+  "pricingChecked": "meshy-6-lite standard preview5; 2K refine10. Actual consumed_credits recorded per successful exact task.",
+  "totalBytes": 5138956,
+  "totalTriangles": 28808,
+  "licenseNote": "User-authorized generation on their Meshy account. Usage subject to Meshy account terms; no independent license clearance claim."
+}

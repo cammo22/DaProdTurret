@@ -1,139 +1,56 @@
-# Combat/economy balance — alpha
+# DaProdTurret v0.2 — combat, resources and verification
 
-## Approved slice and design intent
+This replaces the v0.1 research/prestige economy. Player feedback is authoritative: fullscreen game, automatic support fire with literal manual aim, ammunition, visible ability effects and run loss. Fun and late-game balance still require player feedback; passing tests is not evidence of satisfaction.
 
-Command an autonomous naval defense platform, buy expedition upgrades, then extract research into the next run. The core verb is choosing a build and focusing dangerous contacts, not repeatedly clicking to fire. Cannon reliability, Tesla crowd control, Railgun alignment and an energy-sharing pulse provide the tactical distinction.
+## Resource and reset rules
 
-This slice excludes new biomes, consumables, multiplayer, cloud saves and a native Android package. It implements the approved API in `IMPLEMENTATION.md`; rendering and pause/visibility handling belong to the frontend. Permanent progression is deliberately the approved modest damage bonus, not an additional invented prestige system.
+- Start:120 HP,100 energy,36 ammunition,60 scrap. Only highscore/best completed wave persist between runs. They grant no combat bonus.
+- Weapon fire costs ammunition, never energy. Cannon1 round, Tesla2, Rail4. Magazines automatically reload from unlimited reserve, with visible reload time. Changing weapon cannot reset cooldown/charge/reload.
+- Energy regenerates10/s, increased2/s per reactor level; capacity100+20/level. EMP60 energy,12s cooldown; missiles45 energy,9s cooldown.
+- EMP deals12 damage and stuns movement and attack clocks for2.8s, increased by reactor up to4.8s. Renderer shows per-ship electric arcs as well as the expanding pulse.
+- Missiles launch3 homing projectiles, increasing to6 with reactor levels; each has65+5×reactor damage and splash radius2.8 plus the target's collision radius. Missiles require a live surfaced target.
+- Scrap from destroyed ships and completed waves funds run-local upgrades. Losing clears scrap and upgrades. No research, extraction, resurrection or offline income exists.
 
-## Progression layers
+## Weapons
 
-| Resource | Source | Use / reset policy |
-| --- | --- | --- |
-| Energy | 11/s base; reactor increases regeneration | Tesla, Railgun, pulse; bounded by capacity; resets on extraction |
-| Scrap | Start 45; individual ship kills; capped offline salvage | Upgrades and one-time weapon unlocks; reset to 45 on extraction |
-| Pending research | Cleared waves only | Extract to bank; failed/incomplete waves award none; recovery extraction banks prior earned research |
-| Research | Extraction | Permanent damage factor `1 + sqrt(research) * 0.035`; survives extraction |
-| Best wave | Highest fully cleared wave | Permanent record and offline eligibility; never marks an interrupted wave complete |
+| Weapon | Unlock in current run | Base damage | Base fire rate | Additional behavior |
+|---|---:|---:|---:|---|
+| Cannon |1|20|2.4/s|Traveling shell, segment collision, literal empty-water endpoint|
+| Tesla |25|30|1.7/s|Traveling initial orb then sequential ricochets, damage×0.82 per hop|
+| Railgun |50|110|0.85/s|0.85s charge followed by a heavy beam, initially3 pierced targets|
 
-Targeting is automatic, priority-selectable (`nearest`, `strongest`, `weakest`). Pointer/touch aim overrides priority by selecting the ship closest to the focus point. Ties use stable IDs. There is no manual-fire advantage or repetitive clicking requirement. Auto-wave waits three seconds after completion; manual next-wave can start immediately.
+Manual clicks queue one exact coordinate behind existing cooldown or reload. Holding aims continuously; release resumes automatic targeting. Recent manual shots retain visual gun orientation briefly so a quick tap does not fire a correct projectile from a wrongly oriented barrel. Manual sea coordinates are bounded for numeric safety, not snapped to the nearest enemy. Automatic acquisition range26; spawns radius19–23.
 
-## Initial pacing hypotheses
+Weapon trees: Cannon damage/rate/magazine; Tesla damage/bounces/range; Rail damage/charge/pierce. Costs scale1.25^level, bounded to50 levels. General hull/reactor/salvage costs scale1.28^level. Hull repairs30 and adds30 maxHP; salvage adds18% kill scrap per level. Tesla/Rail eligibility derives from current-run wave, not record or a paid early unlock.
 
-- Buy the first damage upgrade immediately (35 of the starting 45 scrap), or save for another build. First wave must also fund an upgrade without requiring that initial purchase.
-- First wave around 10–20 combat seconds; first boss around two minutes of combat, excluding shopping/reading.
-- Mixed fleets should make offense investment matter around waves 3–5, with extraction viable after the first boss.
-- Automation is available from the start; focus targeting and pulse trade tactical control against hands-off play.
+## Waves, enemies and sea events
 
-These were hypotheses, not claims of measured player enjoyment. The deterministic results below establish feasibility; human playtesting remains necessary.
+- Fleet size min(40,6+wave); spawn gap max(0.45,1.05−wave×0.009). Waves advance automatically after2s unless disabled in-game.
+- Every completed tenth wave enters mandatory `upgrade` and will not advance without Continue, even with auto-wave enabled.
+- Boss every5th wave. Ranged frigates stand off at12 units; armor10, boss14, submarines11. Incoming projectiles damage the station on contact, not at launch.
+- Submarines alternate2.5s submerged /4s surfaced after their initial timer, are untargetable underwater, and launch visible torpedoes. EMP suspends movement, firing and dive clocks.
+- Supply event starts at wave2; further events every3 waves rotate repair/ammo/salvage/supply. They are actual buoy/crate world objects with touch targets and one-time rewards, expiring after28s. They are not decorative counters.
+- Completion waits for both the fleet and remaining hostile projectiles. Simultaneous final kill and lethal incoming hit is defeat, not a phantom wave victory.
 
-## Current rules
+## Persistence and safety
 
-### Station and upgrades
+Save version2 whitelists durable state. No enemies, projectile arrays, effects or events are restored from user-controlled JSON. Invalid JSON, oversized payloads, hostile getters/cycles, prototype keys and nonfinite numeric values cannot inject shape or power. Data is clamped against validated stats and level caps. Interrupted combat rolls back to the previous completed wave; no victory is invented. A saved defeat remains defeat. Legacy v1 data preserves record only, never research or upgrades. Reload does not produce elapsed-time income.
 
-Base damage 15, fire rate 1.4/s, hull 100, energy capacity 100, energy regeneration 11/s, range 26 (covers all spawn positions). All engine delta times are seconds.
+Simulation dt is seconds, invalid/negative/nonfinite dt is ignored, and long deltas are bounded and subdivided. The frontend omits simulation while hidden/paused/in upgrades. Bounded pools:40 enemies,256 engine projectiles,200 effects,8 sea events. Browser visual pools are separately bounded and reused.
 
-| Upgrade | Base scrap cost | Per-level change |
-| --- | ---: | --- |
-| Damage | 35 | +24% base damage |
-| Rate | 40 | +14% base fire rate |
-| Hull | 45 | +28 max HP and +28 immediate HP |
-| Reactor | 45 | +16 capacity/current energy, +2.2 regeneration/s |
-| Salvage | 40 | +15% kill scrap before per-kill rounding |
+## Measured feasibility, not player enjoyment
 
-Cost is `ceil(baseCost * 1.42 ** level)`, with a 50-level safety ceiling. Damage/rate are scalar offense choices; hull is survivability and immediate repair; reactor enables energy-heavy builds; salvage exchanges early combat power for future economy. Weapon purchases are the early behavioral upgrades.
+A deterministic `dt=0.05` run bought the cheapest available current-weapon or tower upgrade before each wave, collected sea events, used missiles on bosses/crowds and EMP on crowds. It used only earned resources, no injected free money. Shopping time is excluded.
 
-### Weapons and pulse
+| Strategy | Wave1 | Wave5 | Wave10 | Wave25 | Wave50 |
+|---|---|---|---|---|---|
+| Remain on Cannon |8.45s,120HP|14.05s,150HP|15.15s, mandatory stop|25.35s,480HP|25.00s, mandatory stop,660HP|
+| Switch immediately at25/50, after spending money on previous weapon |8.45s|14.05s|mandatory stop|34.40s, Tesla,470HP|defeat after45.82s with newly unlocked, unupgraded Rail|
 
-| System | Unlock | Damage | Interval | Energy | Role |
-| --- | ---: | --- | --- | ---: | --- |
-| Cannon | Free | 1x | `1 / fireRate` | 0 | Reliable single-target fire even with an empty reactor |
-| Tesla | 100 | 1.05x, multiplied by 0.8 each hop | `1.2 / fireRate` | 13 | Up to four ships; each hop within 6 world units |
-| Railgun | 180 | 3.2x to every ship on firing line | `2 / fireRate` | 22 | Heavy hit and piercing; line half-width 1.25 |
-| Pulse | Available immediately | 2.2x throughout station range | 12-second cooldown | 60 | Save for crowds or a boss, competing with energy weapons |
+The latter exposes a real balance caveat: a newly unlocked weapon is not automatically stronger than a heavily upgraded previous one. Do not describe all builds as equally strong or the late game as finalized. Accuracy, target selection, projectile dodging/stun timing and saving funds for a new tree still need human playtests.
 
-Unlock payments happen only once per expedition. Switching unlocked weapons is free and does not reset shot cooldown. Energy weapons wait if they cannot afford a shot; they never borrow energy or silently fall back to Cannon. Upgrading the reactor or switching to Cannon are explicit player choices.
+## Automated verification
 
-### Fleets and rewards
+`npm test` checks real engine behavior plus structural UI/asset contracts. `npm run test:e2e` exercises direct manual pointer shots, no-energy ammunition consumption, default audio, in-game upgrade pause/purchases, boss HP, stun, real missile objects,25/50 eligibility, ten-wave stops, defeat reset/highscore, collectible world events and full offline reload. Projects cover desktop, Android-emulated portrait and mobile landscape. Fixtures for specific wave/UI boundaries are explicitly marked as fixtures, not natural playthroughs or measured player performance.
 
-- Wave population: `min(40, 5 + wave * 2)`. Spawn interval: `max(0.7, 2 - wave * 0.035)` seconds. Deterministic golden-angle approach directions, radius 19–21; stop at radius 3.5.
-- Skiffs from wave 1; frigates from wave 3; armored ships from wave 4. Exactly one boss, spawning first, on every fifth wave.
-- Enemy HP scale: `(1 + (wave - 1) * 0.11) * 1.035 ** max(0, wave - 8)`.
-
-| Type | Base HP | Speed | Scrap | Contact damage every 2.2s |
-| --- | ---: | ---: | ---: | ---: |
-| Skiff | 24 | 1.05 | 7 | 5 |
-| Frigate | 55 | 0.78 | 13 | 8 |
-| Armored | 85 | 0.62 | 20 | 11 |
-| Boss | 280 | 0.48 | `90 + wave * 4` | 18 |
-
-Kills are removed and paid immediately exactly once. Only an empty fleet with no remaining spawns completes the wave. Completion restores 18% max HP and 35 energy, capped at station maxima, and grants `ceil(wave / 2)` pending research plus 3 for a boss wave. Defeat never grants completion research.
-
-## Measured deterministic simulations
-
-All runs start with zero research, use the same deterministic fleet sequence, default nearest targeting and `dt = 0.05`. No fabricated saves or free resources are used. Intermission shopping time is excluded.
-
-- **Cannon offense:** initial damage purchase, then repeatedly buy the cheaper damage/rate upgrade before each wave; pulse when three ships or a boss are present.
-- **Tesla/reactor:** initial damage purchase; attempt Tesla unlock starting at wave 3 (first affordable at wave 4 with this policy); repeatedly buy the cheapest reactor/damage/rate upgrade; same pulse policy.
-- **No upgrades:** default Cannon, no purchases or pulses.
-
-| Strategy | W1 seconds | W3 seconds | W5 seconds/outcome | Combat time through first boss | W10 outcome | W20 outcome |
-| --- | ---: | ---: | --- | --- | --- | --- |
-| Cannon offense | 12.55 | 20.90 | 26.85, cleared | 99.30s | cleared, 100 HP after heal | cleared, 100 HP after heal |
-| Tesla/reactor | 12.55 | 20.90 | 47.35, cleared | 128.15s | cleared, 100 HP after heal | cleared, 100 HP after heal |
-| No upgrades | 12.55 | 24.15 | defeat after 36.70s | did not clear boss | — | — |
-
-At wave 5 both investing builds bank 12 pending research and retain positive scrap (336 Cannon / 279 Tesla). Peak concurrent ships on that wave: 4 Cannon / 9 Tesla. With no upgrades, the station fails on wave 5 with 6 pending research from the first four waves and no phantom boss reward.
-
-Interpretation: the opening is forgiving, buying offense materially changes the boss outcome, and both compared builds progress. Cannon offense remains very safe through wave 20; late-game difficulty, Tesla's early efficiency and the subjective pace still need human playtest feedback. These simulations do not establish that every strategy is equally strong or that the game is already fun.
-
-### Reproduce simulations
-
-Run from the project root (Node ESM, no packages/browser/network required):
-
-```sh
-node --input-type=module <<'JS'
-import * as E from './src/engine.js';
-for (const strategy of ['cannon-offense','tesla-reactor','no-upgrades']) {
-  const g = E.createGame(0);
-  if (strategy !== 'no-upgrades') E.buyUpgrade(g,'damage');
-  const rows = [];
-  for (let wave=1; wave<=20; wave++) {
-    if (strategy==='tesla-reactor' && wave>=3 && !g.unlocked.includes('tesla')) E.setWeapon(g,'tesla');
-    const ids = strategy==='cannon-offense' ? ['damage','rate']
-      : strategy==='tesla-reactor' ? ['reactor','damage','rate'] : [];
-    for (let n=0; ids.length && n<20; n++) {
-      const id = [...ids].sort((a,b)=>E.upgradeCost(g,a)-E.upgradeCost(g,b))[0];
-      if (!E.buyUpgrade(g,id)) break;
-    }
-    E.startWave(g);
-    const begin = g.time;
-    let peak = 0;
-    while (g.phase==='combat' && g.time-begin<180) {
-      if (strategy!=='no-upgrades' && (g.enemies.length>=3 || g.enemies.some(e=>e.type==='boss'))) E.pulse(g);
-      E.tick(g,0.05);
-      peak = Math.max(peak,g.enemies.length);
-    }
-    rows.push({wave,seconds:+(g.time-begin).toFixed(2),hp:g.hp,scrap:g.scrap,phase:g.phase,peak,research:g.pendingResearch});
-    if (g.phase!=='intermission') break;
-  }
-  console.log(JSON.stringify({strategy,rows,upgrades:g.upgrades}));
-}
-JS
-```
-
-## Persistence and simulation safety
-
-- `tick` ignores non-number/nonfinite/negative/zero deltas, subdivides accepted deltas into at most 1/60s steps and processes at most one second per call. Frontend pause/visibility must omit ticks entirely; long browser gaps are not accelerated combat.
-- Effects expire by simulated time, are bounded to 160 and have monotonically increasing IDs within the live session, including extraction. Fleet size is bounded to 40.
-- Serialization writes only a durable field whitelist. Loading never merges arbitrary keys or restores enemies/effects/aim/spawn counters. Invalid JSON, versions, shapes, cyclic objects, hostile getters and overlarge payloads safely return a new game.
-- Numeric values must be finite numbers, not coercible strings. Scrap capped at 1e9, research/pending research 1e6, loaded wave/best wave 1000, loaded upgrades 50. HP and energy are bounded by validated upgrade-derived maxima. These are safety limits, not progression targets.
-- An interrupted combat wave rolls back to the preceding cleared wave; the next start retries the interrupted number. Prior acquired scrap/kills persist, but no completion or research reward is invented. Reloading is not anti-cheat protection; local saves are deliberately user-controlled.
-- Defeat/zero-HP saves recover via extraction semantics: bank prior pending research, reset expedition, preserve best wave, return `ready`. This avoids a zero-HP soft lock after reload.
-- Auto-wave is disabled on load so restoration never unexpectedly starts combat.
-- Offline salvage only if `bestWave > 0`: `floor(min(8h, elapsed) / minute * min(bestWave,20))`, hard-capped at 2400 scrap. Negative clock movement/nonfinite timestamps grant zero. Offline awards no kills, waves, HP repair or research. The new timestamp prevents double credit when the returned game is saved normally.
-- Offline is intentionally less powerful than live combat: it provides spending money but cannot clear a wave or bank research.
-
-## Verification
-
-`node --test tests/engine.test.js` exercises real simulation, complete first-five-wave progression, exact-once rewards, purchases/unlocks, targeting, chain/piercing/energy/pulse rules, station defeat, extraction, safe save recovery, offline caps, hostile/nonfinite saves and time guards. No frontend or external dependency is involved. RED → GREEN was run vertically for the major gameplay slices, with the complete suite re-run after each implementation.
+See `docs/REFERENCE.md` for verified original Aqua Turret content and remaining non-parity. See `docs/ASSETS.md` for actual Meshy task receipts, geometry and texture preparation.

@@ -15,7 +15,8 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },
-    { name: 'android-emulated', use: { ...devices['Pixel 7'] } },
+    { name: 'android-emulated', use: { ...devices['Pixel 7'], deviceScaleFactor: 1 } },
+    { name: 'mobile-landscape', use: { viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 } },
   ],
   webServer: remote ? undefined : {
     command: 'npm run preview -- --port 4173 --strictPort',
